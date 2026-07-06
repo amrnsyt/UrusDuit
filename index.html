@@ -980,7 +980,6 @@
             }
 
             const date = new Date();
-            date.setMonth(date.getMonth() - 1); 
             bulanAktif = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
             document.getElementById('select-bulan-aktif').value = bulanAktif;
             
@@ -2415,7 +2414,8 @@
         let bulanLaporanSemasa = "";
 
         function tentukanBulanLaporan() {
-            return bulanAktif;
+            const now = new Date();
+            return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
         }
 
         function bukaLaporanBulanan() {
@@ -2456,17 +2456,21 @@
                 let sudahSetelBulanIni = h.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
                 if (isHutangSelesai(h) && !sudahSetelBulanIni) return;
                 if(!groupedHutang[kat]) {
-                    groupedHutang[kat] = { totalBaki: 0, totalAnsuran: 0, logAmount: 0, isMonthlyPay: h.isMonthlyPay };
+                    groupedHutang[kat] = { totalBaki: 0, monthlyAnsuranSum: 0, hasMonthly: false, hasAdhoc: false, adhocLogAmount: 0 };
                 }
                 groupedHutang[kat].totalBaki += Math.max(0, h.jumlahAsal - h.sudahDibayar);
-                groupedHutang[kat].totalAnsuran += h.ansuran;
-                if(h.isMonthlyPay === false) groupedHutang[kat].isMonthlyPay = false;
+                if (h.isMonthlyPay !== false) {
+                    groupedHutang[kat].monthlyAnsuranSum += h.ansuran;
+                    groupedHutang[kat].hasMonthly = true;
+                } else {
+                    groupedHutang[kat].hasAdhoc = true;
+                }
             });
 
             if (data.bayaranHistory) {
                 data.bayaranHistory.forEach(log => {
-                    if (log.tipe === 'catHut' && groupedHutang[log.targetId] && groupedHutang[log.targetId].isMonthlyPay === false) {
-                        groupedHutang[log.targetId].logAmount += log.amaun;
+                    if (log.tipe === 'catHut' && groupedHutang[log.targetId] && groupedHutang[log.targetId].hasAdhoc) {
+                        groupedHutang[log.targetId].adhocLogAmount += log.amaun;
                     }
                 });
             }
@@ -2474,10 +2478,10 @@
             let bilHutangAktif = 0;
             for (let kat in groupedHutang) {
                 let grp = groupedHutang[kat];
-                let sudahSetel = grp.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
+                let sudahSetel = grp.hasMonthly && !!data.hutangCatPaid[kat];
                 bilHutangAktif++;
-                let amountForReport = grp.isMonthlyPay === false ? grp.logAmount : grp.totalAnsuran;
-                let infoTambahan = grp.isMonthlyPay === false ? `<span class="text-[8px] font-bold text-indigo-400 mt-0.5"><i class="fa-solid fa-bolt"></i> Dari Log Bayaran: RM ${grp.logAmount.toFixed(2)}</span>` : '';
+                let amountForReport = grp.monthlyAnsuranSum + grp.adhocLogAmount;
+                let infoTambahan = grp.hasAdhoc ? `<span class="text-[8px] font-bold text-indigo-400 mt-0.5"><i class="fa-solid fa-bolt"></i> Dari Log Bayaran: RM ${grp.adhocLogAmount.toFixed(2)}</span>` : '';
                 let badgeSetel = sudahSetel ? `<span class="text-[8px] font-bold text-emerald-500 mt-0.5"><i class="fa-solid fa-circle-check"></i> Sudah Setel</span>` : '';
 
                 hutangList.innerHTML += `
@@ -2539,20 +2543,27 @@
                 } else if(val.startsWith('hutgrp_')) {
                     const parts = val.split('_');
                     const kat = parts[1];
-                    const reportedAmount = parseFloat(parts[2]);
 
                     let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && (!isHutangSelesai(x) || (x.isMonthlyPay !== false && data.hutangCatPaid && data.hutangCatPaid[kat])));
                     if(itemsInKat.length > 0) {
-                        let isMonthly = true;
-                        itemsInKat.forEach(x => { if(x.isMonthlyPay === false) isMonthly = false; });
-                        
+                        let adhocItems = itemsInKat.filter(x => x.isMonthlyPay === false);
+                        let adhocLogTotal = 0;
+                        if (data.bayaranHistory) {
+                            data.bayaranHistory.forEach(log => {
+                                if (log.tipe === 'catHut' && log.targetId === kat) adhocLogTotal += log.amaun;
+                            });
+                        }
+                        let adhocPerItem = adhocItems.length > 0 ? (adhocLogTotal / adhocItems.length) : 0;
+                        let katTotal = 0;
+
                         itemsInKat.forEach(x => {
                             let bakiInd = Math.max(0, x.jumlahAsal - x.sudahDibayar);
-                            let amtInd = isMonthly ? x.ansuran : (reportedAmount / itemsInKat.length);
+                            let amtInd = x.isMonthlyPay !== false ? x.ansuran : adhocPerItem;
+                            katTotal += amtInd;
                             hutangText += `🔸 ${x.nama}: RM ${amtInd.toFixed(2)}\n   (Baki Terkini: RM ${bakiInd.toFixed(2)})\n`;
                         });
+                        total += katTotal;
                     }
-                    total += reportedAmount;
                     hasHutang = true;
                 }
             });
