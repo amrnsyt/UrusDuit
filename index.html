@@ -2471,8 +2471,13 @@
                 });
             }
 
+            if(!data.hutangCatPaid) data.hutangCatPaid = {};
+
+            let bilHutangAktif = 0;
             for (let kat in groupedHutang) {
                 let grp = groupedHutang[kat];
+                if (grp.isMonthlyPay !== false && data.hutangCatPaid[kat]) continue;
+                bilHutangAktif++;
                 let amountForReport = grp.isMonthlyPay === false ? grp.logAmount : grp.totalAnsuran;
                 let infoTambahan = grp.isMonthlyPay === false ? `<span class="text-[8px] font-bold text-indigo-400 mt-0.5"><i class="fa-solid fa-bolt"></i> Dari Log Bayaran: RM ${grp.logAmount.toFixed(2)}</span>` : '';
 
@@ -2490,7 +2495,7 @@
             }
 
             if(bilKomitmenAktif === 0) komitmenList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod komitmen aktif bulan ini.</p>';
-            if(Object.keys(groupedHutang).length === 0) hutangList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod hutang aktif bulan ini.</p>';
+            if(bilHutangAktif === 0) hutangList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod hutang aktif bulan ini (semua sudah setel).</p>';
 
             document.getElementById('laporan-modal').classList.remove('hidden');
             document.getElementById('laporan-modal').classList.add('flex');
@@ -2580,8 +2585,27 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('Service Worker registered!', reg))
+        .then(reg => {
+          console.log('Service Worker registered!', reg);
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated') {
+                window.location.reload();
+              }
+            });
+          });
+          setInterval(() => reg.update(), 60 * 1000);
+        })
         .catch(err => console.error('Service Worker registration failed:', err));
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
     });
   }
 </script> 
