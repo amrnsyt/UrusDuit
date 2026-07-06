@@ -980,6 +980,7 @@
             }
 
             const date = new Date();
+            date.setMonth(date.getMonth() - 1); 
             bulanAktif = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
             document.getElementById('select-bulan-aktif').value = bulanAktif;
             
@@ -2411,8 +2412,15 @@
             }
         }
 
+        let bulanLaporanSemasa = "";
+
+        function tentukanBulanLaporan() {
+            return bulanAktif;
+        }
+
         function bukaLaporanBulanan() {
-            const data = masterDatabase.bulan[bulanAktif];
+            bulanLaporanSemasa = tentukanBulanLaporan();
+            const data = masterDatabase.bulan[bulanLaporanSemasa] || janaStrukturBulanKosong();
             const komitmenList = document.getElementById('laporan-komitmen-list');
             const hutangList = document.getElementById('laporan-hutang-list');
             
@@ -2424,11 +2432,15 @@
             if(!data) return;
             muatSenaraiTemplateLaporan();
 
+            let bilKomitmenAktif = 0;
             data.komitmen.forEach(k => {
+                bilKomitmenAktif++;
+                let badgePaid = k.paid ? `<span class="text-[8px] font-bold text-emerald-500 shrink-0"><i class="fa-solid fa-circle-check"></i> Sudah Bayar</span>` : '';
                 komitmenList.innerHTML += `
                     <label class="flex items-center gap-3 text-[10px] bg-slate-500/5 hover:bg-slate-500/10 p-2.5 rounded-lg border border-slate-500/10 cursor-pointer transition-colors">
-                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="kom_${k.id}">
-                        <span class="flex-1 font-semibold">${k.nama}</span>
+                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="kom_${k.id}" ${k.paid ? 'checked' : ''}>
+                        <span class="flex-1 font-semibold ${k.paid ? 'opacity-60' : ''}">${k.nama}</span>
+                        ${badgePaid}
                         <span class="font-bold text-rose-500 shrink-0">RM ${k.amaun.toFixed(2)}</span>
                     </label>
                 `;
@@ -2436,9 +2448,13 @@
 
             if(!data.hutang) data.hutang = [];
             
+            if(!data.hutangCatPaid) data.hutangCatPaid = {};
+
             const groupedHutang = {};
             data.hutang.forEach(h => {
                 let kat = h.kategori || "Lain-lain";
+                let sudahSetelBulanIni = h.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
+                if (isHutangSelesai(h) && !sudahSetelBulanIni) return;
                 if(!groupedHutang[kat]) {
                     groupedHutang[kat] = { totalBaki: 0, totalAnsuran: 0, logAmount: 0, isMonthlyPay: h.isMonthlyPay };
                 }
@@ -2455,26 +2471,31 @@
                 });
             }
 
+            let bilHutangAktif = 0;
             for (let kat in groupedHutang) {
                 let grp = groupedHutang[kat];
+                let sudahSetel = grp.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
+                bilHutangAktif++;
                 let amountForReport = grp.isMonthlyPay === false ? grp.logAmount : grp.totalAnsuran;
                 let infoTambahan = grp.isMonthlyPay === false ? `<span class="text-[8px] font-bold text-indigo-400 mt-0.5"><i class="fa-solid fa-bolt"></i> Dari Log Bayaran: RM ${grp.logAmount.toFixed(2)}</span>` : '';
+                let badgeSetel = sudahSetel ? `<span class="text-[8px] font-bold text-emerald-500 mt-0.5"><i class="fa-solid fa-circle-check"></i> Sudah Setel</span>` : '';
 
                 hutangList.innerHTML += `
                     <label class="flex items-center gap-3 text-[10px] bg-slate-500/5 hover:bg-slate-500/10 p-2.5 rounded-lg border border-slate-500/10 cursor-pointer transition-colors">
-                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="hutgrp_${kat}_${amountForReport}">
-                        <div class="flex-1 flex flex-col">
+                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="hutgrp_${kat}_${amountForReport}" ${sudahSetel ? 'checked' : ''}>
+                        <div class="flex-1 flex flex-col ${sudahSetel ? 'opacity-60' : ''}">
                             <span class="font-semibold">Kategori Hutang: ${kat}</span>
                             <span class="text-[8px] opacity-70 mt-0.5">Outstanding Baki: RM ${grp.totalBaki.toFixed(2)}</span>
                             ${infoTambahan}
+                            ${badgeSetel}
                         </div>
                         <span class="font-bold text-amber-500 shrink-0">RM ${amountForReport.toFixed(2)}</span>
                     </label>
                 `;
             }
 
-            if(data.komitmen.length === 0) komitmenList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod komitmen bulan ini.</p>';
-            if(Object.keys(groupedHutang).length === 0) hutangList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod hutang bulan ini.</p>';
+            if(bilKomitmenAktif === 0) komitmenList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod komitmen aktif bulan ini.</p>';
+            if(bilHutangAktif === 0) hutangList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod hutang aktif bulan ini (semua sudah setel).</p>';
 
             document.getElementById('laporan-modal').classList.remove('hidden');
             document.getElementById('laporan-modal').classList.add('flex');
@@ -2488,9 +2509,9 @@
         }
 
         function janaTeksLaporan() {
-            const data = masterDatabase.bulan[bulanAktif];
+            const data = masterDatabase.bulan[bulanLaporanSemasa] || janaStrukturBulanKosong();
             const tajuk = document.getElementById('laporan-tajuk').value || "Laporan Bayaran";
-            let teks = `*${tajuk}*\nBulan: ${bulanAktif}\n\n`;
+            let teks = `*${tajuk}*\nBulan: ${bulanLaporanSemasa}\n\n`;
             
             let total = 0;
             const checkedBoxes = document.querySelectorAll('#laporan-modal input[type="checkbox"]:checked');
@@ -2520,7 +2541,7 @@
                     const kat = parts[1];
                     const reportedAmount = parseFloat(parts[2]);
 
-                    let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat);
+                    let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && (!isHutangSelesai(x) || (x.isMonthlyPay !== false && data.hutangCatPaid && data.hutangCatPaid[kat])));
                     if(itemsInKat.length > 0) {
                         let isMonthly = true;
                         itemsInKat.forEach(x => { if(x.isMonthlyPay === false) isMonthly = false; });
