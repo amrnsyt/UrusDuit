@@ -682,7 +682,7 @@
             </div>
 
             <button onclick="bukaKomitmenModal()" class="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-3 rounded-2xl cursor-pointer transition-all shadow-lg flex items-center justify-center gap-2">
-                <i class="fa-solid fa-plus-circle"></i> Edit / Tambah Komitmen
+                <i class="fa-solid fa-plus-circle"></i> Tambah Komitmen
             </button>
 
             <div class="space-y-2">
@@ -1497,6 +1497,26 @@
             bukaModal("Padam Komitmen?", `Keluarkan "${namaItem}" dari memori bulan ini?`, "fa-trash-can", "bg-rose-500/20", "text-rose-500", "bg-rose-600 hover:bg-rose-700", "fa-trash", "Padam", () => { padamKomitmen(id); });
         }
 
+        function editAmaunKomitmen(id) {
+            const data = masterDatabase.bulan[bulanAktif];
+            const item = data.komitmen.find(k => k.id === id);
+            if(!item) return;
+
+            const amaunBaruInput = prompt(`Kemaskini Amaun untuk "${item.nama}":`, item.amaun);
+            if(amaunBaruInput === null) return;
+
+            const amaunBaru = parseFloat(amaunBaruInput);
+            if(isNaN(amaunBaru) || amaunBaru < 0) {
+                paparToast("Ralat Amaun", "Sila masukkan amaun yang sah.", "amaran");
+                return;
+            }
+
+            item.amaun = amaunBaru;
+            simpanKeLocalStorage();
+            kemaskiniSemuaPaparan();
+            paparToast("Berjaya Dikemaskini", `Amaun "${item.nama}" telah dikemaskini kepada RM ${amaunBaru.toFixed(2)}.`, "sukses");
+        }
+
         function editHutang(id) {
             idHutangSedangDiedit = id;
             const data = masterDatabase.bulan[bulanAktif];
@@ -2019,7 +2039,7 @@
                                 <span class="font-bold">${item.nama}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="font-extrabold text-rose-600 dark:text-rose-400">RM ${item.amaun.toFixed(2)}</span>
+                                <span class="font-extrabold text-rose-600 dark:text-rose-400 cursor-pointer underline decoration-dotted underline-offset-2" onclick="editAmaunKomitmen(${item.id})">RM ${item.amaun.toFixed(2)}</span>
                                 <button onclick="mohonPadamKomitmen(${item.id}, '${item.nama}')" class="text-slate-400 hover:text-rose-500 cursor-pointer w-6 h-6 flex items-center justify-center rounded-md"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
                             </div>
                         </div>`;
