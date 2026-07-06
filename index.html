@@ -2411,41 +2411,8 @@
             }
         }
 
-        let bulanLaporanSemasa = "";
-        let petaBayaranHutangBulanIni = {};
-        let logKategoriBulanIni = {};
-
-        function tentukanBulanLaporan() {
-            return bulanAktif;
-        }
-
-        function dapatkanBulanSebelum(bulanStr) {
-            const [y, m] = bulanStr.split('-').map(Number);
-            const d = new Date(y, m - 2, 1);
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        }
-
         function bukaLaporanBulanan() {
-            bulanLaporanSemasa = tentukanBulanLaporan();
-            const data = masterDatabase.bulan[bulanLaporanSemasa] || janaStrukturBulanKosong();
-
-            const prevData = masterDatabase.bulan[dapatkanBulanSebelum(bulanLaporanSemasa)];
-            const prevSudahDibayarMap = {};
-            if (prevData && prevData.hutang) {
-                prevData.hutang.forEach(h => { prevSudahDibayarMap[h.id] = parseFloat(h.sudahDibayar) || 0; });
-            }
-            petaBayaranHutangBulanIni = {};
-            (data.hutang || []).forEach(h => {
-                const sebelum = prevSudahDibayarMap[h.id] !== undefined ? prevSudahDibayarMap[h.id] : 0;
-                petaBayaranHutangBulanIni[h.id] = Math.max(0, (parseFloat(h.sudahDibayar) || 0) - sebelum);
-            });
-
-            logKategoriBulanIni = {};
-            (data.bayaranHistory || []).forEach(log => {
-                if (log.tipe === 'catHut' || log.tipe === 'catHutCheck') {
-                    logKategoriBulanIni[log.targetId] = (logKategoriBulanIni[log.targetId] || 0) + (parseFloat(log.amaun) || 0);
-                }
-            });
+            const data = masterDatabase.bulan[bulanAktif];
             const komitmenList = document.getElementById('laporan-komitmen-list');
             const hutangList = document.getElementById('laporan-hutang-list');
             
@@ -2457,15 +2424,11 @@
             if(!data) return;
             muatSenaraiTemplateLaporan();
 
-            let bilKomitmenAktif = 0;
             data.komitmen.forEach(k => {
-                bilKomitmenAktif++;
-                let badgePaid = k.paid ? `<span class="text-[8px] font-bold text-emerald-500 shrink-0"><i class="fa-solid fa-circle-check"></i> Sudah Bayar</span>` : '';
                 komitmenList.innerHTML += `
                     <label class="flex items-center gap-3 text-[10px] bg-slate-500/5 hover:bg-slate-500/10 p-2.5 rounded-lg border border-slate-500/10 cursor-pointer transition-colors">
-                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="kom_${k.id}" ${k.paid ? 'checked' : ''}>
-                        <span class="flex-1 font-semibold ${k.paid ? 'opacity-60' : ''}">${k.nama}</span>
-                        ${badgePaid}
+                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="kom_${k.id}">
+                        <span class="flex-1 font-semibold">${k.nama}</span>
                         <span class="font-bold text-rose-500 shrink-0">RM ${k.amaun.toFixed(2)}</span>
                     </label>
                 `;
@@ -2473,21 +2436,14 @@
 
             if(!data.hutang) data.hutang = [];
             
-            if(!data.hutangCatPaid) data.hutangCatPaid = {};
-
             const groupedHutang = {};
             data.hutang.forEach(h => {
                 let kat = h.kategori || "Lain-lain";
-                let sudahSetelBulanIni = h.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
-                let dibayarBulanIniH = petaBayaranHutangBulanIni[h.id] || 0;
-                let dibayarKatBulanIni = logKategoriBulanIni[kat] || 0;
-                if (isHutangSelesai(h) && !sudahSetelBulanIni && dibayarBulanIniH <= 0 && dibayarKatBulanIni <= 0) return;
                 if(!groupedHutang[kat]) {
                     groupedHutang[kat] = { totalBaki: 0, totalAnsuran: 0, logAmount: 0, isMonthlyPay: h.isMonthlyPay };
                 }
                 groupedHutang[kat].totalBaki += Math.max(0, h.jumlahAsal - h.sudahDibayar);
                 groupedHutang[kat].totalAnsuran += h.ansuran;
-                groupedHutang[kat].totalDibayarBulanIni = (groupedHutang[kat].totalDibayarBulanIni || 0) + (petaBayaranHutangBulanIni[h.id] || 0);
                 if(h.isMonthlyPay === false) groupedHutang[kat].isMonthlyPay = false;
             });
 
@@ -2499,31 +2455,26 @@
                 });
             }
 
-            let bilHutangAktif = 0;
             for (let kat in groupedHutang) {
                 let grp = groupedHutang[kat];
-                let sudahSetel = grp.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
-                bilHutangAktif++;
-                let amountForReport = grp.totalDibayarBulanIni > 0 ? grp.totalDibayarBulanIni : ((logKategoriBulanIni[kat] || 0) > 0 ? logKategoriBulanIni[kat] : (grp.isMonthlyPay === false ? grp.logAmount : grp.totalAnsuran));
+                let amountForReport = grp.isMonthlyPay === false ? grp.logAmount : grp.totalAnsuran;
                 let infoTambahan = grp.isMonthlyPay === false ? `<span class="text-[8px] font-bold text-indigo-400 mt-0.5"><i class="fa-solid fa-bolt"></i> Dari Log Bayaran: RM ${grp.logAmount.toFixed(2)}</span>` : '';
-                let badgeSetel = sudahSetel ? `<span class="text-[8px] font-bold text-emerald-500 mt-0.5"><i class="fa-solid fa-circle-check"></i> Sudah Setel</span>` : '';
 
                 hutangList.innerHTML += `
                     <label class="flex items-center gap-3 text-[10px] bg-slate-500/5 hover:bg-slate-500/10 p-2.5 rounded-lg border border-slate-500/10 cursor-pointer transition-colors">
-                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="hutgrp_${kat}_${amountForReport}" ${sudahSetel ? 'checked' : ''}>
-                        <div class="flex-1 flex flex-col ${sudahSetel ? 'opacity-60' : ''}">
+                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="hutgrp_${kat}_${amountForReport}">
+                        <div class="flex-1 flex flex-col">
                             <span class="font-semibold">Kategori Hutang: ${kat}</span>
                             <span class="text-[8px] opacity-70 mt-0.5">Outstanding Baki: RM ${grp.totalBaki.toFixed(2)}</span>
                             ${infoTambahan}
-                            ${badgeSetel}
                         </div>
                         <span class="font-bold text-amber-500 shrink-0">RM ${amountForReport.toFixed(2)}</span>
                     </label>
                 `;
             }
 
-            if(bilKomitmenAktif === 0) komitmenList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod komitmen aktif bulan ini.</p>';
-            if(bilHutangAktif === 0) hutangList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod hutang aktif bulan ini (semua sudah setel).</p>';
+            if(data.komitmen.length === 0) komitmenList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod komitmen bulan ini.</p>';
+            if(Object.keys(groupedHutang).length === 0) hutangList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod hutang bulan ini.</p>';
 
             document.getElementById('laporan-modal').classList.remove('hidden');
             document.getElementById('laporan-modal').classList.add('flex');
@@ -2537,9 +2488,9 @@
         }
 
         function janaTeksLaporan() {
-            const data = masterDatabase.bulan[bulanLaporanSemasa] || janaStrukturBulanKosong();
+            const data = masterDatabase.bulan[bulanAktif];
             const tajuk = document.getElementById('laporan-tajuk').value || "Laporan Bayaran";
-            let teks = `*${tajuk}*\nBulan: ${bulanLaporanSemasa}\n\n`;
+            let teks = `*${tajuk}*\nBulan: ${bulanAktif}\n\n`;
             
             let total = 0;
             const checkedBoxes = document.querySelectorAll('#laporan-modal input[type="checkbox"]:checked');
@@ -2569,18 +2520,14 @@
                     const kat = parts[1];
                     const reportedAmount = parseFloat(parts[2]);
 
-                    let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && (!isHutangSelesai(x) || (x.isMonthlyPay !== false && data.hutangCatPaid && data.hutangCatPaid[kat]) || (petaBayaranHutangBulanIni[x.id] || 0) > 0 || (logKategoriBulanIni[kat] || 0) > 0));
+                    let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat);
                     if(itemsInKat.length > 0) {
                         let isMonthly = true;
                         itemsInKat.forEach(x => { if(x.isMonthlyPay === false) isMonthly = false; });
                         
                         itemsInKat.forEach(x => {
                             let bakiInd = Math.max(0, x.jumlahAsal - x.sudahDibayar);
-                            let dibayarX = petaBayaranHutangBulanIni[x.id] || 0;
-                            if (dibayarX <= 0 && (logKategoriBulanIni[kat] || 0) > 0) {
-                                dibayarX = logKategoriBulanIni[kat] / itemsInKat.length;
-                            }
-                            let amtInd = dibayarX > 0 ? dibayarX : (isMonthly ? x.ansuran : (reportedAmount / itemsInKat.length));
+                            let amtInd = isMonthly ? x.ansuran : (reportedAmount / itemsInKat.length);
                             hutangText += `🔸 ${x.nama}: RM ${amtInd.toFixed(2)}\n   (Baki Terkini: RM ${bakiInd.toFixed(2)})\n`;
                         });
                     }
