@@ -2471,7 +2471,8 @@
             data.hutang.forEach(h => {
                 let kat = h.kategori || "Lain-lain";
                 let sudahSetelBulanIni = h.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
-                if (isHutangSelesai(h) && !sudahSetelBulanIni) return;
+                let dibayarBulanIniH = petaBayaranHutangBulanIni[h.id] || 0;
+                if (isHutangSelesai(h) && !sudahSetelBulanIni && dibayarBulanIniH <= 0) return;
                 if(!groupedHutang[kat]) {
                     groupedHutang[kat] = { totalBaki: 0, totalAnsuran: 0, logAmount: 0, isMonthlyPay: h.isMonthlyPay };
                 }
@@ -2559,7 +2560,7 @@
                     const kat = parts[1];
                     const reportedAmount = parseFloat(parts[2]);
 
-                    let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && (!isHutangSelesai(x) || (x.isMonthlyPay !== false && data.hutangCatPaid && data.hutangCatPaid[kat])));
+                    let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && (!isHutangSelesai(x) || (x.isMonthlyPay !== false && data.hutangCatPaid && data.hutangCatPaid[kat]) || (petaBayaranHutangBulanIni[x.id] || 0) > 0));
                     if(itemsInKat.length > 0) {
                         let isMonthly = true;
                         itemsInKat.forEach(x => { if(x.isMonthlyPay === false) isMonthly = false; });
