@@ -2438,12 +2438,13 @@
 
             let bilKomitmenAktif = 0;
             data.komitmen.forEach(k => {
-                if (k.paid) return;
                 bilKomitmenAktif++;
+                let badgePaid = k.paid ? `<span class="text-[8px] font-bold text-emerald-500 shrink-0"><i class="fa-solid fa-circle-check"></i> Sudah Bayar</span>` : '';
                 komitmenList.innerHTML += `
                     <label class="flex items-center gap-3 text-[10px] bg-slate-500/5 hover:bg-slate-500/10 p-2.5 rounded-lg border border-slate-500/10 cursor-pointer transition-colors">
-                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="kom_${k.id}">
-                        <span class="flex-1 font-semibold">${k.nama}</span>
+                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="kom_${k.id}" ${k.paid ? 'checked' : ''}>
+                        <span class="flex-1 font-semibold ${k.paid ? 'opacity-60' : ''}">${k.nama}</span>
+                        ${badgePaid}
                         <span class="font-bold text-rose-500 shrink-0">RM ${k.amaun.toFixed(2)}</span>
                     </label>
                 `;
@@ -2476,18 +2477,20 @@
             let bilHutangAktif = 0;
             for (let kat in groupedHutang) {
                 let grp = groupedHutang[kat];
-                if (grp.isMonthlyPay !== false && data.hutangCatPaid[kat]) continue;
+                let sudahSetel = grp.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
                 bilHutangAktif++;
                 let amountForReport = grp.isMonthlyPay === false ? grp.logAmount : grp.totalAnsuran;
                 let infoTambahan = grp.isMonthlyPay === false ? `<span class="text-[8px] font-bold text-indigo-400 mt-0.5"><i class="fa-solid fa-bolt"></i> Dari Log Bayaran: RM ${grp.logAmount.toFixed(2)}</span>` : '';
+                let badgeSetel = sudahSetel ? `<span class="text-[8px] font-bold text-emerald-500 mt-0.5"><i class="fa-solid fa-circle-check"></i> Sudah Setel</span>` : '';
 
                 hutangList.innerHTML += `
                     <label class="flex items-center gap-3 text-[10px] bg-slate-500/5 hover:bg-slate-500/10 p-2.5 rounded-lg border border-slate-500/10 cursor-pointer transition-colors">
-                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="hutgrp_${kat}_${amountForReport}">
-                        <div class="flex-1 flex flex-col">
+                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="hutgrp_${kat}_${amountForReport}" ${sudahSetel ? 'checked' : ''}>
+                        <div class="flex-1 flex flex-col ${sudahSetel ? 'opacity-60' : ''}">
                             <span class="font-semibold">Kategori Hutang: ${kat}</span>
                             <span class="text-[8px] opacity-70 mt-0.5">Outstanding Baki: RM ${grp.totalBaki.toFixed(2)}</span>
                             ${infoTambahan}
+                            ${badgeSetel}
                         </div>
                         <span class="font-bold text-amber-500 shrink-0">RM ${amountForReport.toFixed(2)}</span>
                     </label>
