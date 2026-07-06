@@ -2416,10 +2416,7 @@
 
         function tentukanBulanLaporan() {
             const now = new Date();
-            const bulanSemasaKey = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
-            const dataSemasa = masterDatabase.bulan[bulanSemasaKey];
-            const adaRekod = dataSemasa && (((dataSemasa.komitmen && dataSemasa.komitmen.length > 0)) || ((dataSemasa.hutang && dataSemasa.hutang.length > 0)));
-            return adaRekod ? bulanSemasaKey : bulanAktif;
+            return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
         }
 
         function bukaLaporanBulanan() {
@@ -2452,10 +2449,13 @@
 
             if(!data.hutang) data.hutang = [];
             
+            if(!data.hutangCatPaid) data.hutangCatPaid = {};
+
             const groupedHutang = {};
             data.hutang.forEach(h => {
-                if (isHutangSelesai(h)) return;
                 let kat = h.kategori || "Lain-lain";
+                let sudahSetelBulanIni = h.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
+                if (isHutangSelesai(h) && !sudahSetelBulanIni) return;
                 if(!groupedHutang[kat]) {
                     groupedHutang[kat] = { totalBaki: 0, totalAnsuran: 0, logAmount: 0, isMonthlyPay: h.isMonthlyPay };
                 }
@@ -2471,8 +2471,6 @@
                     }
                 });
             }
-
-            if(!data.hutangCatPaid) data.hutangCatPaid = {};
 
             let bilHutangAktif = 0;
             for (let kat in groupedHutang) {
@@ -2544,7 +2542,7 @@
                     const kat = parts[1];
                     const reportedAmount = parseFloat(parts[2]);
 
-                    let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && !isHutangSelesai(x));
+                    let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && (!isHutangSelesai(x) || (x.isMonthlyPay !== false && data.hutangCatPaid && data.hutangCatPaid[kat])));
                     if(itemsInKat.length > 0) {
                         let isMonthly = true;
                         itemsInKat.forEach(x => { if(x.isMonthlyPay === false) isMonthly = false; });
