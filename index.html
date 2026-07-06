@@ -980,7 +980,6 @@
             }
 
             const date = new Date();
-            date.setMonth(date.getMonth() - 1); 
             bulanAktif = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
             document.getElementById('select-bulan-aktif').value = bulanAktif;
             
@@ -2413,14 +2412,32 @@
         }
 
         let bulanLaporanSemasa = "";
+        let petaBayaranHutangBulanIni = {};
 
         function tentukanBulanLaporan() {
             return bulanAktif;
         }
 
+        function dapatkanBulanSebelum(bulanStr) {
+            const [y, m] = bulanStr.split('-').map(Number);
+            const d = new Date(y, m - 2, 1);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+
         function bukaLaporanBulanan() {
             bulanLaporanSemasa = tentukanBulanLaporan();
             const data = masterDatabase.bulan[bulanLaporanSemasa] || janaStrukturBulanKosong();
+
+            const prevData = masterDatabase.bulan[dapatkanBulanSebelum(bulanLaporanSemasa)];
+            const prevSudahDibayarMap = {};
+            if (prevData && prevData.hutang) {
+                prevData.hutang.forEach(h => { prevSudahDibayarMap[h.id] = parseFloat(h.sudahDibayar) || 0; });
+            }
+            petaBayaranHutangBulanIni = {};
+            (data.hutang || []).forEach(h => {
+                const sebelum = prevSudahDibayarMap[h.id] !== undefined ? prevSudahDibayarMap[h.id] : 0;
+                petaBayaranHutangBulanIni[h.id] = Math.max(0, (parseFloat(h.sudahDibayar) || 0) - sebelum);
+            });
             const komitmenList = document.getElementById('laporan-komitmen-list');
             const hutangList = document.getElementById('laporan-hutang-list');
             
@@ -2460,6 +2477,7 @@
                 }
                 groupedHutang[kat].totalBaki += Math.max(0, h.jumlahAsal - h.sudahDibayar);
                 groupedHutang[kat].totalAnsuran += h.ansuran;
+                groupedHutang[kat].totalDibayarBulanIni = (groupedHutang[kat].totalDibayarBulanIni || 0) + (petaBayaranHutangBulanIni[h.id] || 0);
                 if(h.isMonthlyPay === false) groupedHutang[kat].isMonthlyPay = false;
             });
 
@@ -2476,7 +2494,7 @@
                 let grp = groupedHutang[kat];
                 let sudahSetel = grp.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
                 bilHutangAktif++;
-                let amountForReport = grp.isMonthlyPay === false ? grp.logAmount : grp.totalAnsuran;
+                let amountForReport = grp.totalDibayarBulanIni > 0 ? grp.totalDibayarBulanIni : (grp.isMonthlyPay === false ? grp.logAmount : grp.totalAnsuran);
                 let infoTambahan = grp.isMonthlyPay === false ? `<span class="text-[8px] font-bold text-indigo-400 mt-0.5"><i class="fa-solid fa-bolt"></i> Dari Log Bayaran: RM ${grp.logAmount.toFixed(2)}</span>` : '';
                 let badgeSetel = sudahSetel ? `<span class="text-[8px] font-bold text-emerald-500 mt-0.5"><i class="fa-solid fa-circle-check"></i> Sudah Setel</span>` : '';
 
@@ -2548,7 +2566,8 @@
                         
                         itemsInKat.forEach(x => {
                             let bakiInd = Math.max(0, x.jumlahAsal - x.sudahDibayar);
-                            let amtInd = isMonthly ? x.ansuran : (reportedAmount / itemsInKat.length);
+                            let dibayarX = petaBayaranHutangBulanIni[x.id] || 0;
+                            let amtInd = dibayarX > 0 ? dibayarX : (isMonthly ? x.ansuran : (reportedAmount / itemsInKat.length));
                             hutangText += `🔸 ${x.nama}: RM ${amtInd.toFixed(2)}\n   (Baki Terkini: RM ${bakiInd.toFixed(2)})\n`;
                         });
                     }
