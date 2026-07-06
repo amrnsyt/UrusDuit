@@ -197,17 +197,17 @@
 </head>
 <body class="dark-theme min-h-screen flex flex-col justify-between pb-32">
 
-    <div id="premium-toast" class="fixed inset-0 z-[10005] hidden items-center justify-center p-4 pointer-events-none">
-        <div id="toast-body" class="w-full max-w-xs rounded-2xl p-4 flex items-center gap-3.5 shadow-2xl border pointer-events-auto backdrop-blur-2xl text-white ios-spring-in">
+    <div id="premium-toast" class="fixed inset-0 z-[10005] hidden items-end justify-center p-4 pb-28 pointer-events-none">
+        <div id="toast-body" class="w-full max-w-xs rounded-2xl p-4 flex items-center gap-3.5 shadow-2xl border pointer-events-auto backdrop-blur-2xl ios-spring-in">
             <div id="toast-icon-wrapper" class="w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-inner shrink-0">
                 <i id="toast-icon" class="fa-solid"></i>
             </div>
             <div class="flex-1">
                 <h4 id="toast-title" class="text-xs font-bold tracking-wide"></h4>
-                <p id="toast-message" class="text-[10px] opacity-90 mt-0.5 leading-snug"></p>
+                <p id="toast-message" class="text-[10px] opacity-95 mt-0.5 leading-snug"></p>
             </div>
-            <button onclick="tutupToastAwal()" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer shrink-0">
-                <i class="fa-solid fa-xmark text-xs opacity-70"></i>
+            <button id="toast-close-btn" onclick="tutupToastAwal()" class="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer shrink-0">
+                <i id="toast-close-icon" class="fa-solid fa-xmark text-xs"></i>
             </button>
         </div>
     </div>
@@ -479,9 +479,8 @@
 
                 <div id="sub-hutang-section" class="hidden pt-2 border-t border-slate-500/10 space-y-2">
                     <p class="text-[9px] opacity-70 font-bold uppercase mb-1.5 text-purple-500"><i class="fa-solid fa-layer-group"></i> Sub-Hutang</p>
-                    <div class="grid grid-cols-3 gap-2">
-                        <input type="text" id="input-nama-subhutang" class="col-span-3 glass-input rounded-lg px-2 py-1.5 text-xs" placeholder="Nama Sub-Hutang">
-                        <input type="text" id="input-tarikh-subhutang" class="glass-input rounded-lg px-2 py-1.5 text-xs" placeholder="Tarikh (cth: 12/07)">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="input-nama-subhutang" class="col-span-2 glass-input rounded-lg px-2 py-1.5 text-xs" placeholder="Nama Sub-Hutang">
                         <input type="number" id="input-amaun-subhutang" class="glass-input rounded-lg px-2 py-1.5 text-xs" placeholder="Amaun (RM)">
                         <button onclick="tambahSubHutang()" type="button" class="bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] rounded-lg cursor-pointer font-bold hover:bg-purple-500/20 transition-colors">+ Tambah</button>
                     </div>
@@ -1164,25 +1163,35 @@
             const icon = document.getElementById('toast-icon');
             const titleEl = document.getElementById('toast-title');
             const msgEl = document.getElementById('toast-message');
+            const closeBtn = document.getElementById('toast-close-btn');
+            const closeIcon = document.getElementById('toast-close-icon');
 
-            toastBody.className = "w-full max-w-xs rounded-2xl p-4 flex items-center gap-3.5 shadow-2xl border pointer-events-auto backdrop-blur-2xl text-white ios-spring-in";
+            toastBody.className = "w-full max-w-xs rounded-2xl p-4 flex items-center gap-3.5 shadow-2xl border pointer-events-auto backdrop-blur-2xl ios-spring-in";
             
             if (jenis === 'sukses') {
-                toastBody.classList.add('bg-emerald-900', 'border-emerald-500');
-                iconWrapper.className = "w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-inner bg-emerald-500/20 text-emerald-300 shrink-0";
+                toastBody.classList.add('bg-emerald-600', 'border-emerald-300', 'text-white');
+                iconWrapper.className = "w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-inner bg-white/25 text-white shrink-0";
                 icon.className = "fa-solid fa-circle-check";
+                closeBtn.className = "w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center cursor-pointer shrink-0";
+                closeIcon.className = "fa-solid fa-xmark text-xs text-white";
             } else if (jenis === 'info') {
-                toastBody.classList.add('bg-indigo-900', 'border-indigo-500');
-                iconWrapper.className = "w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-inner bg-indigo-500/20 text-indigo-300 shrink-0";
+                toastBody.classList.add('bg-blue-600', 'border-blue-300', 'text-white');
+                iconWrapper.className = "w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-inner bg-white/25 text-white shrink-0";
                 icon.className = "fa-solid fa-circle-info";
+                closeBtn.className = "w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center cursor-pointer shrink-0";
+                closeIcon.className = "fa-solid fa-xmark text-xs text-white";
             } else if (jenis === 'padam') {
-                toastBody.classList.add('bg-rose-900', 'border-rose-500');
-                iconWrapper.className = "w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-inner bg-rose-500/20 text-rose-300 shrink-0";
+                toastBody.classList.add('bg-rose-600', 'border-rose-300', 'text-white');
+                iconWrapper.className = "w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-inner bg-white/25 text-white shrink-0";
                 icon.className = "fa-solid fa-trash-can";
+                closeBtn.className = "w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center cursor-pointer shrink-0";
+                closeIcon.className = "fa-solid fa-xmark text-xs text-white";
             } else if (jenis === 'amaran') {
-                toastBody.classList.add('bg-amber-900', 'border-amber-500');
-                iconWrapper.className = "w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-inner bg-amber-500/20 text-amber-300 shrink-0";
+                toastBody.classList.add('bg-amber-400', 'border-amber-200', 'text-slate-900');
+                iconWrapper.className = "w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-inner bg-slate-900/10 text-slate-900 shrink-0";
                 icon.className = "fa-solid fa-triangle-exclamation";
+                closeBtn.className = "w-6 h-6 rounded-full bg-slate-900/10 hover:bg-slate-900/20 flex items-center justify-center cursor-pointer shrink-0";
+                closeIcon.className = "fa-solid fa-xmark text-xs text-slate-900";
             }
 
             titleEl.innerText = tajuk;
@@ -1192,7 +1201,7 @@
             toast.classList.remove('hidden');
             toast.classList.add('flex');
 
-            toastTimeout = setTimeout(() => { tutupToastAwal(); }, 3000);
+            toastTimeout = setTimeout(() => { tutupToastAwal(); }, 1800);
         }
 
         function tutupToastAwal() {
@@ -1755,7 +1764,6 @@
 
             document.getElementById('sub-hutang-section').classList.add('hidden');
             document.getElementById('input-nama-subhutang').value = "";
-            document.getElementById('input-tarikh-subhutang').value = "";
             document.getElementById('input-amaun-subhutang').value = "";
 
             document.getElementById('text-btn-hutang').innerText = "Simpan Rekod";
@@ -1775,6 +1783,13 @@
 
         function mohonResetSemuaData() {
             bukaModal("Padam Semua Data?", "Tindakan ini memadam kesemua rekod selama-lamanya. Anda pasti?", "fa-triangle-exclamation", "bg-rose-500/20", "text-rose-500", "bg-rose-600 hover:bg-rose-700", "fa-skull", "Padam Semua", () => { localStorage.clear(); location.reload(); });
+        }
+
+        function isHutangSelesai(h) {
+            let asal = parseFloat(h.jumlahAsal) || 0;
+            let dibayar = parseFloat(h.sudahDibayar) || 0;
+            let progress = asal > 0 ? (dibayar / asal) * 100 : 0;
+            return h.status === 'Selesai' || progress >= 100;
         }
 
         function kemaskiniSemuaPaparan() {
@@ -2031,8 +2046,8 @@
                     hutangDiproses = hutangDiproses.filter(h => h.kategori === filterKategori);
                 }
 
-                let hutangAktifSenarai = hutangDiproses.filter(h => h.status !== 'Selesai');
-                let hutangSelesaiSenarai = hutangDiproses.filter(h => h.status === 'Selesai');
+                let hutangAktifSenarai = hutangDiproses.filter(h => !isHutangSelesai(h));
+                let hutangSelesaiSenarai = hutangDiproses.filter(h => isHutangSelesai(h));
                 
                 if (hutangDiproses.length === 0) {
                     hContainer.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-4 bg-slate-500/5 rounded-xl border border-dashed">Tiada rekod hutang ditemui.</p>`;
@@ -2159,7 +2174,7 @@
         function tambahSubHutang() {
             if (idHutangSedangDiedit === null) return paparToast("Simpan Dahulu", "Sila simpan Hutang utama sebelum menambah Sub-Hutang.", "amaran");
             const nama = document.getElementById('input-nama-subhutang').value.trim();
-            const tarikh = document.getElementById('input-tarikh-subhutang').value.trim() || "-";
+            const tarikh = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
             const amaun = parseFloat(document.getElementById('input-amaun-subhutang').value) || 0;
             if (!nama || amaun <= 0) return paparToast("Maklumat Tidak Cukup", "Masukkan Nama dan Amaun Sub-Hutang.", "amaran");
 
@@ -2168,14 +2183,16 @@
             if (!target) return;
             if (!target.subHutang) target.subHutang = [];
             target.subHutang.push({ id: Date.now(), nama, tarikh, amaun });
+            target.jumlahAsal = (parseFloat(target.jumlahAsal) || 0) + amaun;
 
             document.getElementById('input-nama-subhutang').value = "";
-            document.getElementById('input-tarikh-subhutang').value = "";
             document.getElementById('input-amaun-subhutang').value = "";
+            document.getElementById('input-jumlah-asal-hutang').value = target.jumlahAsal;
 
             simpanKeLocalStorage();
             renderSenaraiSubHutang(idHutangSedangDiedit);
-            paparToast("Sub-Hutang Ditambah", `"${nama}" telah disenaraikan.`, "sukses");
+            kemaskiniSemuaPaparan();
+            paparToast("Sub-Hutang Ditambah", `"${nama}" telah disenaraikan dan ditambah ke jumlah hutang.`, "sukses");
         }
 
         function renderSenaraiSubHutang(id) {
@@ -2208,9 +2225,17 @@
             const data = masterDatabase.bulan[bulanAktif];
             const target = data.hutang.find(h => h.id === hutangId);
             if (!target || !target.subHutang) return;
+            const subItem = target.subHutang.find(s => s.id === subId);
             target.subHutang = target.subHutang.filter(s => s.id !== subId);
+            if (subItem) {
+                target.jumlahAsal = Math.max(0, (parseFloat(target.jumlahAsal) || 0) - (parseFloat(subItem.amaun) || 0));
+                if (idHutangSedangDiedit === hutangId) {
+                    document.getElementById('input-jumlah-asal-hutang').value = target.jumlahAsal;
+                }
+            }
             simpanKeLocalStorage();
             renderSenaraiSubHutang(hutangId);
+            kemaskiniSemuaPaparan();
         }
 
         function bukaLaporanSubHutang(id) {
@@ -2221,26 +2246,36 @@
             document.getElementById('title-laporan-subhutang').innerHTML = `<i class="fa-solid fa-file-lines"></i> Laporan: ${target.nama}`;
             const subList = target.subHutang || [];
             const isiEl = document.getElementById('isi-laporan-subhutang');
-            let total = 0;
+            let totalSub = subList.reduce((sum, s) => sum + (parseFloat(s.amaun) || 0), 0);
+            let jumlahAsalSemasa = parseFloat(target.jumlahAsal) || 0;
+            let pokok = Math.max(0, jumlahAsalSemasa - totalSub);
+
+            let html = `
+                <div class="flex justify-between items-center bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl">
+                    <div>
+                        <span class="font-bold block text-slate-800 dark:text-slate-200">${target.nama}</span>
+                        <span class="opacity-60 text-[10px]">Hutang Asal (Pokok)</span>
+                    </div>
+                    <span class="font-extrabold text-amber-600 dark:text-amber-500">RM ${pokok.toFixed(2)}</span>
+                </div>
+            `;
 
             if (subList.length === 0) {
-                isiEl.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-4 bg-slate-500/5 rounded-xl border border-dashed">Tiada sub-hutang direkod bagi akaun ini.</p>`;
+                html += `<p class="text-[11px] text-slate-500 text-center py-4 bg-slate-500/5 rounded-xl border border-dashed">Tiada sub-hutang direkod bagi akaun ini.</p>`;
             } else {
-                isiEl.innerHTML = subList.map(s => {
-                    total += parseFloat(s.amaun) || 0;
-                    return `
-                        <div class="flex justify-between items-center bg-slate-500/5 border border-slate-500/10 p-2.5 rounded-xl">
-                            <div>
-                                <span class="font-bold block text-slate-800 dark:text-slate-200">${s.nama}</span>
-                                <span class="opacity-60 text-[10px]">${s.tarikh}</span>
-                            </div>
-                            <span class="font-extrabold text-purple-600 dark:text-purple-400">RM ${parseFloat(s.amaun).toFixed(2)}</span>
+                html += subList.map(s => `
+                    <div class="flex justify-between items-center bg-slate-500/5 border border-slate-500/10 p-2.5 rounded-xl">
+                        <div>
+                            <span class="font-bold block text-slate-800 dark:text-slate-200">${s.nama}</span>
+                            <span class="opacity-60 text-[10px]">${s.tarikh}</span>
                         </div>
-                    `;
-                }).join('');
+                        <span class="font-extrabold text-purple-600 dark:text-purple-400">RM ${parseFloat(s.amaun).toFixed(2)}</span>
+                    </div>
+                `).join('');
             }
 
-            document.getElementById('total-laporan-subhutang').innerText = `RM ${total.toFixed(2)}`;
+            isiEl.innerHTML = html;
+            document.getElementById('total-laporan-subhutang').innerText = `RM ${(pokok + totalSub).toFixed(2)}`;
 
             document.getElementById('laporan-subhutang-modal').classList.remove('hidden');
             document.getElementById('laporan-subhutang-modal').classList.add('flex');
@@ -2377,8 +2412,19 @@
             }
         }
 
+        let bulanLaporanSemasa = "";
+
+        function tentukanBulanLaporan() {
+            const now = new Date();
+            const bulanSemasaKey = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+            const dataSemasa = masterDatabase.bulan[bulanSemasaKey];
+            const adaRekod = dataSemasa && (((dataSemasa.komitmen && dataSemasa.komitmen.length > 0)) || ((dataSemasa.hutang && dataSemasa.hutang.length > 0)));
+            return adaRekod ? bulanSemasaKey : bulanAktif;
+        }
+
         function bukaLaporanBulanan() {
-            const data = masterDatabase.bulan[bulanAktif];
+            bulanLaporanSemasa = tentukanBulanLaporan();
+            const data = masterDatabase.bulan[bulanLaporanSemasa] || janaStrukturBulanKosong();
             const komitmenList = document.getElementById('laporan-komitmen-list');
             const hutangList = document.getElementById('laporan-hutang-list');
             
@@ -2390,7 +2436,10 @@
             if(!data) return;
             muatSenaraiTemplateLaporan();
 
+            let bilKomitmenAktif = 0;
             data.komitmen.forEach(k => {
+                if (k.paid) return;
+                bilKomitmenAktif++;
                 komitmenList.innerHTML += `
                     <label class="flex items-center gap-3 text-[10px] bg-slate-500/5 hover:bg-slate-500/10 p-2.5 rounded-lg border border-slate-500/10 cursor-pointer transition-colors">
                         <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="kom_${k.id}">
@@ -2404,6 +2453,7 @@
             
             const groupedHutang = {};
             data.hutang.forEach(h => {
+                if (isHutangSelesai(h)) return;
                 let kat = h.kategori || "Lain-lain";
                 if(!groupedHutang[kat]) {
                     groupedHutang[kat] = { totalBaki: 0, totalAnsuran: 0, logAmount: 0, isMonthlyPay: h.isMonthlyPay };
@@ -2439,8 +2489,8 @@
                 `;
             }
 
-            if(data.komitmen.length === 0) komitmenList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod komitmen bulan ini.</p>';
-            if(Object.keys(groupedHutang).length === 0) hutangList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod hutang bulan ini.</p>';
+            if(bilKomitmenAktif === 0) komitmenList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod komitmen aktif bulan ini.</p>';
+            if(Object.keys(groupedHutang).length === 0) hutangList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod hutang aktif bulan ini.</p>';
 
             document.getElementById('laporan-modal').classList.remove('hidden');
             document.getElementById('laporan-modal').classList.add('flex');
@@ -2454,9 +2504,9 @@
         }
 
         function janaTeksLaporan() {
-            const data = masterDatabase.bulan[bulanAktif];
+            const data = masterDatabase.bulan[bulanLaporanSemasa] || janaStrukturBulanKosong();
             const tajuk = document.getElementById('laporan-tajuk').value || "Laporan Bayaran";
-            let teks = `*${tajuk}*\nBulan: ${bulanAktif}\n\n`;
+            let teks = `*${tajuk}*\nBulan: ${bulanLaporanSemasa}\n\n`;
             
             let total = 0;
             const checkedBoxes = document.querySelectorAll('#laporan-modal input[type="checkbox"]:checked');
@@ -2486,7 +2536,7 @@
                     const kat = parts[1];
                     const reportedAmount = parseFloat(parts[2]);
 
-                    let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && x.status === 'Aktif');
+                    let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && !isHutangSelesai(x));
                     if(itemsInKat.length > 0) {
                         let isMonthly = true;
                         itemsInKat.forEach(x => { if(x.isMonthlyPay === false) isMonthly = false; });
