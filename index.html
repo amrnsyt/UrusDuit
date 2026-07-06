@@ -477,6 +477,17 @@
                     </div>
                 </div>
 
+                <div id="sub-hutang-section" class="hidden pt-2 border-t border-slate-500/10 space-y-2">
+                    <p class="text-[9px] opacity-70 font-bold uppercase mb-1.5 text-purple-500"><i class="fa-solid fa-layer-group"></i> Sub-Hutang</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" id="input-nama-subhutang" class="col-span-3 glass-input rounded-lg px-2 py-1.5 text-xs" placeholder="Nama Sub-Hutang">
+                        <input type="text" id="input-tarikh-subhutang" class="glass-input rounded-lg px-2 py-1.5 text-xs" placeholder="Tarikh (cth: 12/07)">
+                        <input type="number" id="input-amaun-subhutang" class="glass-input rounded-lg px-2 py-1.5 text-xs" placeholder="Amaun (RM)">
+                        <button onclick="tambahSubHutang()" type="button" class="bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] rounded-lg cursor-pointer font-bold hover:bg-purple-500/20 transition-colors">+ Tambah</button>
+                    </div>
+                    <div id="senarai-subhutang-list" class="space-y-1.5 max-h-32 overflow-y-auto custom-scrollbar pr-1"></div>
+                </div>
+
                 <div class="grid grid-cols-5 gap-2 pt-2">
                     <button onclick="kosongkanBorangHutang()" class="col-span-2 py-2.5 bg-slate-500/10 border border-slate-300 dark:border-slate-500/20 text-xs font-bold rounded-xl cursor-pointer">
                         Batal / Reset
@@ -485,6 +496,22 @@
                         <i class="fa-solid fa-check"></i> <span id="text-btn-hutang">Simpan Rekod</span>
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="laporan-subhutang-modal" class="fixed inset-0 z-[10003] hidden items-center justify-center bg-black/60 backdrop-blur-md px-4" onclick="if(event.target === this) tutupLaporanSubHutang()">
+        <div class="liquid-glass glass-card-premium rounded-3xl p-6 w-full max-w-sm ios-spring-in flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-500/10">
+                <h3 id="title-laporan-subhutang" class="text-xs font-bold flex items-center gap-2 text-purple-500"><i class="fa-solid fa-file-lines"></i> Laporan Sub-Hutang</h3>
+                <button onclick="tutupLaporanSubHutang()" class="text-slate-400 hover:text-slate-200 cursor-pointer w-6 h-6 flex justify-center items-center rounded-full bg-slate-500/20">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+            <div id="isi-laporan-subhutang" class="overflow-y-auto pr-2 space-y-2 flex-1 custom-scrollbar text-[11px]"></div>
+            <div class="pt-3 mt-2 border-t border-slate-500/10 flex justify-between items-center text-xs font-bold">
+                <span class="opacity-70">Jumlah Keseluruhan:</span>
+                <span id="total-laporan-subhutang" class="text-purple-600 dark:text-purple-400">RM 0.00</span>
             </div>
         </div>
     </div>
@@ -1483,6 +1510,9 @@
             syncCustomDropdown('input-kategori-hutang');
             syncCustomDropdown('input-status-hutang');
 
+            document.getElementById('sub-hutang-section').classList.remove('hidden');
+            renderSenaraiSubHutang(id);
+
             document.getElementById('text-btn-hutang').innerText = "Kemaskini Rekod";
             document.getElementById('btn-hantar-hutang').className = "col-span-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-1 shadow-md";
             
@@ -1722,6 +1752,11 @@
             
             syncCustomDropdown('input-status-hutang');
             syncCustomDropdown('input-kategori-hutang');
+
+            document.getElementById('sub-hutang-section').classList.add('hidden');
+            document.getElementById('input-nama-subhutang').value = "";
+            document.getElementById('input-tarikh-subhutang').value = "";
+            document.getElementById('input-amaun-subhutang').value = "";
 
             document.getElementById('text-btn-hutang').innerText = "Simpan Rekod";
             document.getElementById('btn-hantar-hutang').className = "col-span-3 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-1 shadow-md";
@@ -1995,12 +2030,15 @@
                 if (filterKategori !== 'semua') {
                     hutangDiproses = hutangDiproses.filter(h => h.kategori === filterKategori);
                 }
+
+                let hutangAktifSenarai = hutangDiproses.filter(h => h.status !== 'Selesai');
+                let hutangSelesaiSenarai = hutangDiproses.filter(h => h.status === 'Selesai');
                 
                 if (hutangDiproses.length === 0) {
                     hContainer.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-4 bg-slate-500/5 rounded-xl border border-dashed">Tiada rekod hutang ditemui.</p>`;
                 } else if (sortMode === 'kategori') {
                     const kelompokHutang = {};
-                    hutangDiproses.forEach(h => {
+                    hutangAktifSenarai.forEach(h => {
                         if (!kelompokHutang[h.kategori]) kelompokHutang[h.kategori] = [];
                         kelompokHutang[h.kategori].push(h);
                     });
@@ -2029,9 +2067,24 @@
                     });
 
                 } else {
-                    hutangDiproses.forEach(h => {
+                    hutangAktifSenarai.forEach(h => {
                         hContainer.innerHTML += binaHutangCardTemplate(h);
                     });
+                }
+
+                if (hutangSelesaiSenarai.length > 0) {
+                    let selesaiBlockHtml = `
+                        <div class="space-y-2 pt-2 opacity-50">
+                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg border-l-4 border-slate-400">
+                                <span class="text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400"><i class="fa-solid fa-check-double mr-1.5"></i>Selesai (${hutangSelesaiSenarai.length})</span>
+                            </div>
+                            <div class="space-y-2">
+                    `;
+                    hutangSelesaiSenarai.forEach(h => {
+                        selesaiBlockHtml += binaHutangCardTemplate(h);
+                    });
+                    selesaiBlockHtml += `</div></div>`;
+                    hContainer.innerHTML += selesaiBlockHtml;
                 }
             }
 
@@ -2081,6 +2134,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <button onclick="editHutang(${h.id})" class="text-indigo-600 dark:text-indigo-400 bg-slate-500/10 border border-slate-300 dark:border-transparent w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer transition-colors" title="Kemaskini"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                            <button onclick="bukaLaporanSubHutang(${h.id})" class="text-purple-600 dark:text-purple-400 bg-slate-500/10 border border-slate-300 dark:border-transparent w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer transition-colors" title="Laporan Sub-Hutang"><i class="fa-solid fa-file-lines text-[10px]"></i></button>
                             <button onclick="mohonPadamHutang(${h.id}, '${h.nama}')" class="text-rose-600 dark:text-rose-400 bg-slate-500/10 border border-slate-300 dark:border-transparent w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer transition-colors" title="Padam"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
                         </div>
                     </div>
@@ -2100,6 +2154,101 @@
                     </div>
                 </div>
             `;
+        }
+
+        function tambahSubHutang() {
+            if (idHutangSedangDiedit === null) return paparToast("Simpan Dahulu", "Sila simpan Hutang utama sebelum menambah Sub-Hutang.", "amaran");
+            const nama = document.getElementById('input-nama-subhutang').value.trim();
+            const tarikh = document.getElementById('input-tarikh-subhutang').value.trim() || "-";
+            const amaun = parseFloat(document.getElementById('input-amaun-subhutang').value) || 0;
+            if (!nama || amaun <= 0) return paparToast("Maklumat Tidak Cukup", "Masukkan Nama dan Amaun Sub-Hutang.", "amaran");
+
+            const data = masterDatabase.bulan[bulanAktif];
+            const target = data.hutang.find(h => h.id === idHutangSedangDiedit);
+            if (!target) return;
+            if (!target.subHutang) target.subHutang = [];
+            target.subHutang.push({ id: Date.now(), nama, tarikh, amaun });
+
+            document.getElementById('input-nama-subhutang').value = "";
+            document.getElementById('input-tarikh-subhutang').value = "";
+            document.getElementById('input-amaun-subhutang').value = "";
+
+            simpanKeLocalStorage();
+            renderSenaraiSubHutang(idHutangSedangDiedit);
+            paparToast("Sub-Hutang Ditambah", `"${nama}" telah disenaraikan.`, "sukses");
+        }
+
+        function renderSenaraiSubHutang(id) {
+            const listEl = document.getElementById('senarai-subhutang-list');
+            if (!listEl) return;
+            const data = masterDatabase.bulan[bulanAktif];
+            const target = data.hutang.find(h => h.id === id);
+            const subList = (target && target.subHutang) ? target.subHutang : [];
+
+            if (subList.length === 0) {
+                listEl.innerHTML = `<p class="text-[10px] text-slate-500 text-center py-2">Tiada sub-hutang direkod.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = subList.map(s => `
+                <div class="flex justify-between items-center bg-slate-500/5 border border-slate-500/10 px-2.5 py-1.5 rounded-lg text-[10px]">
+                    <div>
+                        <span class="font-bold block">${s.nama}</span>
+                        <span class="opacity-60">${s.tarikh}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-purple-600 dark:text-purple-400">RM ${parseFloat(s.amaun).toFixed(2)}</span>
+                        <button onclick="padamSubHutang(${id}, ${s.id})" class="text-rose-500 w-5 h-5 flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function padamSubHutang(hutangId, subId) {
+            const data = masterDatabase.bulan[bulanAktif];
+            const target = data.hutang.find(h => h.id === hutangId);
+            if (!target || !target.subHutang) return;
+            target.subHutang = target.subHutang.filter(s => s.id !== subId);
+            simpanKeLocalStorage();
+            renderSenaraiSubHutang(hutangId);
+        }
+
+        function bukaLaporanSubHutang(id) {
+            const data = masterDatabase.bulan[bulanAktif];
+            const target = data.hutang.find(h => h.id === id);
+            if (!target) return;
+
+            document.getElementById('title-laporan-subhutang').innerHTML = `<i class="fa-solid fa-file-lines"></i> Laporan: ${target.nama}`;
+            const subList = target.subHutang || [];
+            const isiEl = document.getElementById('isi-laporan-subhutang');
+            let total = 0;
+
+            if (subList.length === 0) {
+                isiEl.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-4 bg-slate-500/5 rounded-xl border border-dashed">Tiada sub-hutang direkod bagi akaun ini.</p>`;
+            } else {
+                isiEl.innerHTML = subList.map(s => {
+                    total += parseFloat(s.amaun) || 0;
+                    return `
+                        <div class="flex justify-between items-center bg-slate-500/5 border border-slate-500/10 p-2.5 rounded-xl">
+                            <div>
+                                <span class="font-bold block text-slate-800 dark:text-slate-200">${s.nama}</span>
+                                <span class="opacity-60 text-[10px]">${s.tarikh}</span>
+                            </div>
+                            <span class="font-extrabold text-purple-600 dark:text-purple-400">RM ${parseFloat(s.amaun).toFixed(2)}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('total-laporan-subhutang').innerText = `RM ${total.toFixed(2)}`;
+
+            document.getElementById('laporan-subhutang-modal').classList.remove('hidden');
+            document.getElementById('laporan-subhutang-modal').classList.add('flex');
+        }
+
+        function tutupLaporanSubHutang() {
+            document.getElementById('laporan-subhutang-modal').classList.add('hidden');
+            document.getElementById('laporan-subhutang-modal').classList.remove('flex');
         }
         
         function eksportData() {
