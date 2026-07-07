@@ -1,36 +1,3 @@
-Yes, we **absolutely can** separate the files! 
-
-The reason your Hutang data went missing previously wasn't because the code was broken—it was because of your phone's **PWA Cache**. When we split the files, your phone's memory stubbornly held onto the old `index.html` but couldn't find the new `js/hutang.js` file, so the Hutang module crashed.
-
-To fix this forever, I have added a "Cache Buster" (`?v=8.3`) to all file links. This forces your phone to download the new files from Vercel immediately.
-
-*(Note: As an AI, I cannot attach a physical `.zip` file for you to download, but I have neatly prepared the exact contents below. Simply create these files in GitHub and paste the code.)*
-
-Here is your perfect, modular folder structure:
-
-### 📁 Folder Structure to Create in GitHub:
-```text
-/
-├── index.html
-├── manifest.json
-├── sw.js
-├── css/
-│   └── styles.css
-└── js/
-    ├── core.js
-    ├── dashboard.js
-    ├── gaji.js
-    ├── komitmen.js
-    ├── hutang.js
-    └── tetapan.js
-```
-
----
-
-### 📄 1. `index.html`
-Replace your `index.html` with this. Notice how clean it is. All CSS and JS are now linked at the top and bottom.
-
-```html
 <!DOCTYPE html>
 <html lang="ms" class="h-full">
 <head>
