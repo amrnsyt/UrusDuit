@@ -75,6 +75,23 @@
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
             border-color: #6366f1;
         }
+
+        /* QUICK ADJUST STEPPER BUTTONS (EDIT AMOUNT MODAL) */
+        .quick-adjust-btn {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 8px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            color: #e11d48;
+            background: rgba(225, 29, 72, 0.08);
+            border: 1px solid rgba(225, 29, 72, 0.18);
+            transition: all 0.15s ease;
+        }
+        .quick-adjust-btn:active {
+            transform: scale(0.93);
+            background: rgba(225, 29, 72, 0.18);
+        }
         
         /* LIGHT MODE SPECIFIC TEXT RE-COLOR FOR HIGH CONTRAST (ALL GREY TO BLACK) */
         body.light-theme .text-slate-100,
@@ -393,6 +410,48 @@
 
                 <button onclick="tambahKomitmen()" class="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 rounded-xl cursor-pointer transition-all shadow-lg">
                     Daftar Komitmen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-amaun-komitmen-modal" class="fixed inset-0 z-[10002] hidden items-center justify-center bg-black/60 backdrop-blur-md px-4" onclick="if(event.target === this) tutupEditAmaunModal()">
+        <div class="liquid-glass glass-card-premium rounded-3xl p-5 w-full max-w-sm ios-spring-in flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl flex items-center justify-center bg-rose-500/15 text-rose-500 text-sm">
+                        <i id="edit-amaun-komitmen-icon" class="fa-solid fa-pen-to-square"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] uppercase tracking-wider font-bold opacity-60">Kemaskini Amaun</p>
+                        <h3 id="edit-amaun-komitmen-nama" class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">Komitmen</h3>
+                    </div>
+                </div>
+                <button onclick="tutupEditAmaunModal()" class="text-slate-400 hover:text-slate-200 cursor-pointer w-7 h-7 flex justify-center items-center rounded-full bg-slate-500/20 shrink-0">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+
+            <div class="bg-rose-500/5 border border-rose-500/15 rounded-2xl px-4 py-3.5 flex items-center justify-center gap-1.5 mb-3">
+                <span class="text-sm font-bold text-rose-500 opacity-80">RM</span>
+                <input type="number" step="0.01" inputmode="decimal" id="input-edit-amaun-komitmen"
+                    class="bg-transparent text-center text-2xl font-extrabold text-rose-600 dark:text-rose-400 w-full max-w-[160px] focus:outline-none"
+                    placeholder="0.00" onfocus="this.select()">
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 mb-4">
+                <button type="button" onclick="labKomitmenAmaun(-50)" class="quick-adjust-btn">-50</button>
+                <button type="button" onclick="labKomitmenAmaun(-10)" class="quick-adjust-btn">-10</button>
+                <button type="button" onclick="labKomitmenAmaun(10)" class="quick-adjust-btn">+10</button>
+                <button type="button" onclick="labKomitmenAmaun(50)" class="quick-adjust-btn">+50</button>
+            </div>
+
+            <div class="flex gap-2.5">
+                <button onclick="tutupEditAmaunModal()" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-500/10 hover:bg-slate-500/20 text-slate-500 dark:text-slate-300 cursor-pointer transition-all">
+                    Batal
+                </button>
+                <button onclick="simpanEditAmaunKomitmen()" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 shadow-lg cursor-pointer transition-all flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-check"></i> Simpan
                 </button>
             </div>
         </div>
@@ -969,6 +1028,7 @@
         let toastTimeout = null;
         let modalConfirmAction = null;
         let idHutangSedangDiedit = null;
+        let idKomitmenSedangDiedit = null;
 
         window.onload = function() {
             janaSenaraiBulan();
@@ -1498,14 +1558,47 @@
         }
 
         function editAmaunKomitmen(id) {
+            bukaEditAmaunModal(id);
+        }
+
+        function bukaEditAmaunModal(id) {
             const data = masterDatabase.bulan[bulanAktif];
             const item = data.komitmen.find(k => k.id === id);
             if(!item) return;
 
-            const amaunBaruInput = prompt(`Kemaskini Amaun untuk "${item.nama}":`, item.amaun);
-            if(amaunBaruInput === null) return;
+            idKomitmenSedangDiedit = id;
+            document.getElementById('edit-amaun-komitmen-nama').innerText = item.nama;
+            document.getElementById('edit-amaun-komitmen-icon').className = `fa-solid ${item.icon || 'fa-pen-to-square'}`;
+            const inputEl = document.getElementById('input-edit-amaun-komitmen');
+            inputEl.value = item.amaun.toFixed(2);
 
-            const amaunBaru = parseFloat(amaunBaruInput);
+            const modal = document.getElementById('edit-amaun-komitmen-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => { inputEl.focus(); inputEl.select(); }, 150);
+        }
+
+        function tutupEditAmaunModal() {
+            const modal = document.getElementById('edit-amaun-komitmen-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            idKomitmenSedangDiedit = null;
+        }
+
+        function labKomitmenAmaun(delta) {
+            const inputEl = document.getElementById('input-edit-amaun-komitmen');
+            const semasa = parseFloat(inputEl.value) || 0;
+            const baru = Math.max(0, semasa + delta);
+            inputEl.value = baru.toFixed(2);
+        }
+
+        function simpanEditAmaunKomitmen() {
+            if(idKomitmenSedangDiedit === null) return;
+            const data = masterDatabase.bulan[bulanAktif];
+            const item = data.komitmen.find(k => k.id === idKomitmenSedangDiedit);
+            if(!item) return;
+
+            const amaunBaru = parseFloat(document.getElementById('input-edit-amaun-komitmen').value);
             if(isNaN(amaunBaru) || amaunBaru < 0) {
                 paparToast("Ralat Amaun", "Sila masukkan amaun yang sah.", "amaran");
                 return;
@@ -1514,6 +1607,7 @@
             item.amaun = amaunBaru;
             simpanKeLocalStorage();
             kemaskiniSemuaPaparan();
+            tutupEditAmaunModal();
             paparToast("Berjaya Dikemaskini", `Amaun "${item.nama}" telah dikemaskini kepada RM ${amaunBaru.toFixed(2)}.`, "sukses");
         }
 
@@ -2039,7 +2133,7 @@
                                 <span class="font-bold">${item.nama}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="font-extrabold text-rose-600 dark:text-rose-400 cursor-pointer underline decoration-dotted underline-offset-2" onclick="editAmaunKomitmen(${item.id})">RM ${item.amaun.toFixed(2)}</span>
+                                <span class="font-extrabold text-rose-600 dark:text-rose-400 cursor-pointer underline decoration-dotted underline-offset-2" onclick="bukaEditAmaunModal(${item.id})">RM ${item.amaun.toFixed(2)}</span>
                                 <button onclick="mohonPadamKomitmen(${item.id}, '${item.nama}')" class="text-slate-400 hover:text-rose-500 cursor-pointer w-6 h-6 flex items-center justify-center rounded-md"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
                             </div>
                         </div>`;
