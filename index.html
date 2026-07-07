@@ -2025,6 +2025,7 @@
             let totalBakiAnsuran = 0; 
             let totalBakiBiasa = 0;    
             let ansuranKategori = {};
+            let bakiKategoriHutang = {};
             
             if(!data.hutang) data.hutang = [];
             
@@ -2037,6 +2038,8 @@
                     let kat = h.kategori || "Lain-lain";
                     if(!ansuranKategori[kat]) ansuranKategori[kat] = 0;
                     ansuranKategori[kat] += h.ansuran;
+                    if(!bakiKategoriHutang[kat]) bakiKategoriHutang[kat] = 0;
+                    bakiKategoriHutang[kat] += bakiHutangAkaun;
                     totalBakiAnsuran += bakiHutangAkaun; 
                 } else if(h.status === 'Aktif') {
                     totalBakiBiasa += bakiHutangAkaun; 
@@ -2183,7 +2186,7 @@
 
                 for(let kat in ansuranKategori) {
                     let isPaid = data.hutangCatPaid[kat] || false;
-                    let amt = ansuranKategori[kat];
+                    let amt = bakiKategoriHutang[kat] !== undefined ? bakiKategoriHutang[kat] : ansuranKategori[kat];
                     if(isPaid) itemSelesai++;
                     
                     checklistContainer.innerHTML += `
