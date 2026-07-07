@@ -331,7 +331,7 @@ function kemaskiniSemuaPaparan() {
                             <span class="text-[9px] opacity-60 mt-0.5"><i class="fa-solid fa-calendar-day text-[8px]"></i> ${log.tarikh} | ${labelTipe}</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="font-extrabold text-indigo-600 dark:text-indigo-400">RM ${log.amaun.toFixed(2)}</span>
+                            <span class="font-extrabold ${log.amaun < 0 ? 'text-rose-500' : 'text-indigo-600 dark:text-indigo-400'}">RM ${log.amaun.toFixed(2)}</span>
                             <button onclick="editSejarah(${log.id})" class="text-indigo-500 bg-indigo-500/10 w-6 h-6 flex items-center justify-center rounded hover:bg-indigo-500/20"><i class="fa-solid fa-pen text-[9px]"></i></button>
                             <button onclick="padamSejarah(${log.id})" class="text-rose-500 bg-rose-500/10 w-6 h-6 flex items-center justify-center rounded hover:bg-rose-500/20"><i class="fa-solid fa-trash text-[9px]"></i></button>
                         </div>
@@ -568,7 +568,11 @@ function editSejarah(idLog) {
     const amaunBaruInput = prompt(`Kemaskini Amaun Bayaran Sejarah untuk "${logItem.nama}":`, logItem.amaun);
     if(amaunBaruInput === null) return;
     const amaunBaru = parseFloat(amaunBaruInput) || 0;
+    
+    // We cannot reliably change negative logs via prompt.
+    if(logItem.amaun < 0) return paparToast("Dilarang", "Log pemulangan tidak boleh diedit, hanya dipadam.", "amaran");
     if(amaunBaru < 0) return paparToast("Ralat Amaun", "Sila masukkan amaun baru yang sah.", "amaran");
+    
     const perbezaan = amaunBaru - logItem.amaun;
 
     if(logItem.tipe === 'catHut') {
@@ -612,14 +616,28 @@ function padamSejarah(idLog) {
     const logItem = data.bayaranHistory[idxLog];
 
     if(logItem.tipe === 'catHut') {
-        let diffToRemove = logItem.amaun;
-        for (let i = 0; i < data.hutang.length; i++) {
-            let h = data.hutang[i];
-            if ((h.kategori || "Lain-lain") === logItem.targetId && h.sudahDibayar > 0) {
-                let takeBack = Math.min(h.sudahDibayar, diffToRemove);
-                h.sudahDibayar -= takeBack;
-                diffToRemove -= takeBack;
-                if (diffToRemove <= 0) break;
+        if (logItem.amaun > 0) {
+            let diffToRemove = logItem.amaun;
+            for (let i = 0; i < data.hutang.length; i++) {
+                let h = data.hutang[i];
+                if ((h.kategori || "Lain-lain") === logItem.targetId && h.sudahDibayar > 0) {
+                    let takeBack = Math.min(h.sudahDibayar, diffToRemove);
+                    h.sudahDibayar -= takeBack;
+                    diffToRemove -= takeBack;
+                    if (diffToRemove <= 0) break;
+                }
+            }
+        } else if (logItem.amaun < 0) {
+            let diffToAdd = Math.abs(logItem.amaun);
+            for (let i = 0; i < data.hutang.length; i++) {
+                let h = data.hutang[i];
+                if ((h.kategori || "Lain-lain") === logItem.targetId && h.status === 'Aktif') {
+                    let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                    let toAdd = Math.min(baki, diffToAdd);
+                    h.sudahDibayar += toAdd;
+                    diffToAdd -= toAdd;
+                    if (diffToAdd <= 0) break;
+                }
             }
         }
     } else if(logItem.tipe === 'catKom') {
@@ -644,46 +662,4 @@ function padamSejarah(idLog) {
     simpanKeLocalStorage();
     kemaskiniSemuaPaparan();
     paparToast("Transaksi Dipadam", "Log bayaran dikeluarkan, baki dipulangkan asal.", "padam");
-}
-
-function binaHutangCardTemplate(h) {
-    let asal = parseFloat(h.jumlahAsal) || 0;
-    let dibayar = parseFloat(h.sudahDibayar) || 0;
-    let progress = asal > 0 ? Math.max(0, Math.min(100, (dibayar / asal) * 100)) : 0;
-    let barColorClass = "bg-gradient-to-r from-rose-500 to-orange-500"; 
-    if (progress >= 75) barColorClass = "bg-gradient-to-r from-teal-500 to-emerald-500";
-    else if (progress >= 35) barColorClass = "bg-gradient-to-r from-orange-500 to-amber-500";
-    
-    return `
-        <div class="liquid-glass rounded-xl p-3.5 space-y-3 text-[11px]">
-            <div class="flex justify-between items-center">
-                <div>
-                    <div class="flex items-center gap-1.5">
-                        <h4 class="font-bold text-slate-800 dark:text-slate-200 text-xs">${h.nama}</h4>
-                        ${h.isMonthlyPay !== false ? '<span class="text-[8px] bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded uppercase font-bold">Ansuran</span>' : ''}
-                        <span class="text-[8px] bg-slate-500/20 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded font-bold"><i class="fa-solid fa-calendar text-[7px] mr-0.5"></i>Hb ${h.tarikhBayar}</span>
-                    </div>
-                    <p class="text-[10px] opacity-70 mt-0.5"><span class="font-medium text-slate-600 dark:text-slate-400">${h.kategori}</span></p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="editHutang(${h.id})" class="text-indigo-600 dark:text-indigo-400 bg-slate-500/10 border border-slate-300 dark:border-transparent w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer transition-colors" title="Kemaskini"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                    <button onclick="bukaLaporanSubHutang(${h.id})" class="text-purple-600 dark:text-purple-400 bg-slate-500/10 border border-slate-300 dark:border-transparent w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer transition-colors" title="Laporan Sub-Hutang"><i class="fa-solid fa-file-lines text-[10px]"></i></button>
-                    <button onclick="mohonPadamHutang(${h.id}, '${h.nama}')" class="text-rose-600 dark:text-rose-400 bg-slate-500/10 border border-slate-300 dark:border-transparent w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer transition-colors" title="Padam"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
-                </div>
-            </div>
-            <div class="pt-1">
-                <div class="flex justify-between text-[9px] mb-1.5 font-bold text-slate-700 dark:text-slate-300">
-                    <span>Dibayar: RM ${dibayar.toFixed(2)}</span>
-                    <span>Total: RM ${asal.toFixed(2)}</span>
-                </div>
-                <div class="w-full bg-slate-500/10 h-2 rounded-full overflow-hidden">
-                    <div class="${barColorClass} h-full rounded-full transition-all duration-500 ease-out" style="width: ${progress}%"></div>
-                </div>
-                <div class="flex justify-between text-[9px] mt-1.5 opacity-70 font-bold">
-                    <span>Ansuran bulanan: RM ${parseFloat(h.ansuran).toFixed(2)}</span>
-                    <span>${progress.toFixed(1)}% Selesai</span>
-                </div>
-            </div>
-        </div>
-    `;
 }
