@@ -2025,7 +2025,7 @@
             let totalBakiAnsuran = 0; 
             let totalBakiBiasa = 0;    
             let ansuranKategori = {};
-            let bakiKategoriHutang = {};
+            let bakiKategoriSemua = {};
             
             if(!data.hutang) data.hutang = [];
             
@@ -2033,13 +2033,17 @@
                 let bakiHutangAkaun = Math.max(0, h.jumlahAsal - h.sudahDibayar);
                 totalBakiHutang += bakiHutangAkaun;
 
+                if(h.status === 'Aktif') {
+                    let katSemua = h.kategori || "Lain-lain";
+                    if(!bakiKategoriSemua[katSemua]) bakiKategoriSemua[katSemua] = 0;
+                    bakiKategoriSemua[katSemua] += bakiHutangAkaun;
+                }
+
                 if(h.status === 'Aktif' && h.isMonthlyPay !== false) {
                     totalAnsuranHutang += h.ansuran;
                     let kat = h.kategori || "Lain-lain";
                     if(!ansuranKategori[kat]) ansuranKategori[kat] = 0;
                     ansuranKategori[kat] += h.ansuran;
-                    if(!bakiKategoriHutang[kat]) bakiKategoriHutang[kat] = 0;
-                    bakiKategoriHutang[kat] += bakiHutangAkaun;
                     totalBakiAnsuran += bakiHutangAkaun; 
                 } else if(h.status === 'Aktif') {
                     totalBakiBiasa += bakiHutangAkaun; 
@@ -2163,7 +2167,7 @@
 
             const checklistContainer = document.getElementById('dashboard-checklist-container');
             let itemSelesai = 0;
-            let totalItemChecklist = data.komitmen.length + Object.keys(ansuranKategori).length;
+            let totalItemChecklist = data.komitmen.length + Object.keys(bakiKategoriSemua).length;
 
             if(checklistContainer) {
                 checklistContainer.innerHTML = "";
@@ -2184,9 +2188,9 @@
                     `;
                 });
 
-                for(let kat in ansuranKategori) {
+                for(let kat in bakiKategoriSemua) {
                     let isPaid = data.hutangCatPaid[kat] || false;
-                    let amt = bakiKategoriHutang[kat] !== undefined ? bakiKategoriHutang[kat] : ansuranKategori[kat];
+                    let amt = bakiKategoriSemua[kat];
                     if(isPaid) itemSelesai++;
                     
                     checklistContainer.innerHTML += `
