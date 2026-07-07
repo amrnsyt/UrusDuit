@@ -135,17 +135,21 @@ function tambahHutang() {
                 ...data.hutang[idx], nama, kategori, pemiutang, jumlahAsal, ansuran, sudahDibayar, faedah, tarikhBayar, status, isMonthlyPay
             };
             
-            // --- BUG FIX: THIS CAPTURES BOTH ADDITIONS AND REDUCTIONS ---
             let diff = sudahDibayar - prevSudahDibayar;
             if (diff !== 0) {
+                // If user reduces the debt manually, uncheck the Dashboard checklist automatically!
+                if (diff < 0 && data.hutangCatPaid && data.hutangCatPaid[kategori]) {
+                    data.hutangCatPaid[kategori] = false;
+                }
+                
                 if(!data.bayaranHistory) data.bayaranHistory = [];
                 const tarikhHariIni = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
                 data.bayaranHistory.push({
                     id: Date.now(), 
                     tipe: 'catHut', 
                     targetId: kategori, 
-                    nama: `Edit Hutang: ${nama} ${diff > 0 ? '(Tambah)' : '(Kurang)'}`, 
-                    amaun: diff, // this will be negative if reduced, fixing the checklist bug
+                    nama: `Edit Akaun: ${nama} ${diff > 0 ? '(Tambah)' : '(Batal)'}`, 
+                    amaun: diff,
                     tarikh: tarikhHariIni
                 });
             }
