@@ -260,8 +260,9 @@
             <div id="quick-pay-inputs" class="space-y-4">
                 <div>
                     <label class="text-[10px] uppercase font-bold tracking-wider opacity-70 block mb-1">Pilih Kategori Aliran</label>
-                    <select id="quick-pay-select" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs bg-transparent border shadow-sm"></select>
+                    <select id="quick-pay-select" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs bg-transparent border shadow-sm" onchange="onQuickPaySelectChange()"></select>
                 </div>
+                <div id="quick-pay-subhutang-section" class="hidden bg-purple-500/5 border border-purple-500/15 rounded-2xl p-3"></div>
                 <div>
                     <label class="text-[10px] uppercase font-bold tracking-wider opacity-70 block mb-1">Amaun Yang Dibayar (RM)</label>
                     <div class="relative">
@@ -1200,6 +1201,56 @@
             document.getElementById('quick-pay-modal').classList.add('hidden');
             document.getElementById('quick-pay-modal').classList.remove('flex');
             document.body.classList.remove('overflow-hidden');
+            const section = document.getElementById('quick-pay-subhutang-section');
+            if(section) { section.classList.add('hidden'); section.innerHTML = ""; }
+        }
+
+        function onQuickPaySelectChange() {
+            const selectEl = document.getElementById('quick-pay-select');
+            const val = selectEl.value;
+            const section = document.getElementById('quick-pay-subhutang-section');
+            document.getElementById('quick-pay-amount').value = "";
+
+            if(val && val.startsWith('hutangAkaun_')) {
+                const hutangId = parseInt(val.split('_')[1]);
+                renderQuickPaySubHutangList(hutangId);
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+                section.innerHTML = "";
+            }
+        }
+
+        function renderQuickPaySubHutangList(hutangId) {
+            const section = document.getElementById('quick-pay-subhutang-section');
+            const data = masterDatabase.bulan[bulanAktif];
+            const target = data.hutang.find(h => h.id === hutangId);
+            if(!target) { section.innerHTML = ""; return; }
+
+            const subList = (target.subHutang || []).filter(s => !s.paid);
+            let html = `<p class="text-[9px] uppercase font-bold tracking-wider opacity-70 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Pilih Sub-Hutang Untuk Ditolak</p>`;
+
+            if(subList.length === 0) {
+                html += `<p class="text-[10px] text-slate-500 text-center py-3 bg-slate-500/5 rounded-xl border border-dashed">Tiada sub-hutang belum bayar. Amaun akan ditolak terus dari baki utama akaun ini.</p>`;
+            } else {
+                html += `<div class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pr-1">` + subList.map(s => `
+                    <label class="flex items-center justify-between gap-2 bg-slate-500/5 border border-slate-500/10 px-2.5 py-2 rounded-lg text-[10px] cursor-pointer hover:border-purple-500/30 transition-colors">
+                        <span class="flex items-center gap-2">
+                            <input type="checkbox" class="ios-checkbox quick-pay-subhutang-check" data-id="${s.id}" data-amaun="${s.amaun}" onchange="kemaskiniJumlahQuickPaySubHutang()">
+                            <span class="font-bold">${s.nama}</span>
+                        </span>
+                        <span class="font-bold text-purple-600 dark:text-purple-400">RM ${parseFloat(s.amaun).toFixed(2)}</span>
+                    </label>
+                `).join('') + `</div>`;
+            }
+            section.innerHTML = html;
+        }
+
+        function kemaskiniJumlahQuickPaySubHutang() {
+            const checks = document.querySelectorAll('.quick-pay-subhutang-check:checked');
+            let total = 0;
+            checks.forEach(c => total += parseFloat(c.dataset.amaun) || 0);
+            document.getElementById('quick-pay-amount').value = total > 0 ? total.toFixed(2) : "";
         }
 
         function bukaHistoryModal() {
@@ -1436,6 +1487,30 @@
                 });
                 namaTarget = `Kategori Hutang: ${namaKategori}`;
                 paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki kategori "${namaKategori}".`, "sukses");
+            } else if(jenis === 'hutangAkaun') {
+                const hutangId = parseInt(namaKategori);
+                const target = data.hutang.find(h => h.id === hutangId);
+                if(!target) {
+                    paparToast("Ralat", "Akaun hutang tidak dijumpai.", "amaran");
+                    return;
+                }
+
+                const checkedBoxes = document.querySelectorAll('.quick-pay-subhutang-check:checked');
+                let namaSubTerpilih = [];
+                checkedBoxes.forEach(cb => {
+                    const subId = parseInt(cb.dataset.id);
+                    const subItem = (target.subHutang || []).find(s => s.id === subId);
+                    if(subItem) {
+                        subItem.paid = true;
+                        namaSubTerpilih.push(subItem.nama);
+                    }
+                });
+
+                target.sudahDibayar = (parseFloat(target.sudahDibayar) || 0) + amaunLog;
+                namaTarget = namaSubTerpilih.length > 0
+                    ? `Hutang: ${target.nama} (${namaSubTerpilih.join(', ')})`
+                    : `Hutang: ${target.nama}`;
+                paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki "${target.nama}".`, "sukses");
             }
 
             if(!data.bayaranHistory) data.bayaranHistory = [];
@@ -2040,6 +2115,16 @@
                     }
                 }
                 optionsHtml += '</optgroup>';
+                optionsHtml += '<optgroup label="🎯 Hutang (Akaun Individu)" class="text-slate-900">';
+                data.hutang.forEach(h => {
+                    if (h.status === 'Aktif') {
+                        let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                        if (baki > 0) {
+                            optionsHtml += `<option value="hutangAkaun_${h.id}" class="text-slate-900">${h.nama} [Baki: RM ${baki.toFixed(2)}]</option>`;
+                        }
+                    }
+                });
+                optionsHtml += '</optgroup>';
                 quickPaySelect.innerHTML = optionsHtml;
                 initCustomDropdown('quick-pay-select');
             }
@@ -2295,7 +2380,7 @@
             const target = data.hutang.find(h => h.id === idHutangSedangDiedit);
             if (!target) return;
             if (!target.subHutang) target.subHutang = [];
-            target.subHutang.push({ id: Date.now(), nama, tarikh, amaun });
+            target.subHutang.push({ id: Date.now(), nama, tarikh, amaun, paid: false });
             target.jumlahAsal = (parseFloat(target.jumlahAsal) || 0) + amaun;
 
             document.getElementById('input-nama-subhutang').value = "";
