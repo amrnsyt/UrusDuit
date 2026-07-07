@@ -1228,29 +1228,37 @@
             if(!target) { section.innerHTML = ""; return; }
 
             const subList = (target.subHutang || []).filter(s => !s.paid);
-            let html = `<p class="text-[9px] uppercase font-bold tracking-wider opacity-70 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Pilih Sub-Hutang Untuk Ditolak</p>`;
+
+            let html = `<label class="text-[9px] uppercase font-bold tracking-wider opacity-70 mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-layer-group"></i> Pilih Sub-Hutang Untuk Dibayar</label>`;
+            html += `<select id="quick-pay-subhutang-select" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs bg-transparent border shadow-sm" onchange="onQuickPaySubHutangChange()">`;
+            html += `<option value="" class="text-slate-900">-- Bayaran Am / Ansuran Pokok --</option>`;
+            subList.forEach(s => {
+                html += `<option value="${s.id}" class="text-slate-900">${s.nama} (RM ${parseFloat(s.amaun).toFixed(2)})</option>`;
+            });
+            html += `</select>`;
 
             if(subList.length === 0) {
-                html += `<p class="text-[10px] text-slate-500 text-center py-3 bg-slate-500/5 rounded-xl border border-dashed">Tiada sub-hutang belum bayar. Amaun akan ditolak terus dari baki utama akaun ini.</p>`;
-            } else {
-                html += `<div class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pr-1">` + subList.map(s => `
-                    <label class="flex items-center justify-between gap-2 bg-slate-500/5 border border-slate-500/10 px-2.5 py-2 rounded-lg text-[10px] cursor-pointer hover:border-purple-500/30 transition-colors">
-                        <span class="flex items-center gap-2">
-                            <input type="checkbox" class="ios-checkbox quick-pay-subhutang-check" data-id="${s.id}" data-amaun="${s.amaun}" onchange="kemaskiniJumlahQuickPaySubHutang()">
-                            <span class="font-bold">${s.nama}</span>
-                        </span>
-                        <span class="font-bold text-purple-600 dark:text-purple-400">RM ${parseFloat(s.amaun).toFixed(2)}</span>
-                    </label>
-                `).join('') + `</div>`;
+                html += `<p class="text-[10px] text-slate-500 mt-2">Tiada sub-hutang belum bayar bagi akaun ini. Amaun akan ditolak terus dari baki utama.</p>`;
             }
+
             section.innerHTML = html;
+            initCustomDropdown('quick-pay-subhutang-select');
         }
 
-        function kemaskiniJumlahQuickPaySubHutang() {
-            const checks = document.querySelectorAll('.quick-pay-subhutang-check:checked');
-            let total = 0;
-            checks.forEach(c => total += parseFloat(c.dataset.amaun) || 0);
-            document.getElementById('quick-pay-amount').value = total > 0 ? total.toFixed(2) : "";
+        function onQuickPaySubHutangChange() {
+            const subSelectEl = document.getElementById('quick-pay-subhutang-select');
+            const amountInput = document.getElementById('quick-pay-amount');
+            if(!subSelectEl) return;
+            const subId = subSelectEl.value;
+            if(!subId) { amountInput.value = ""; return; }
+
+            const mainVal = document.getElementById('quick-pay-select').value;
+            const hutangId = parseInt(mainVal.split('_')[1]);
+            const data = masterDatabase.bulan[bulanAktif];
+            const target = data.hutang.find(h => h.id === hutangId);
+            if(!target) return;
+            const subItem = (target.subHutang || []).find(s => s.id === parseInt(subId));
+            if(subItem) amountInput.value = parseFloat(subItem.amaun).toFixed(2);
         }
 
         function bukaHistoryModal() {
@@ -1495,20 +1503,21 @@
                     return;
                 }
 
-                const checkedBoxes = document.querySelectorAll('.quick-pay-subhutang-check:checked');
-                let namaSubTerpilih = [];
-                checkedBoxes.forEach(cb => {
-                    const subId = parseInt(cb.dataset.id);
-                    const subItem = (target.subHutang || []).find(s => s.id === subId);
+                const subSelectEl = document.getElementById('quick-pay-subhutang-select');
+                const subId = subSelectEl ? subSelectEl.value : "";
+                let namaSubTerpilih = "";
+
+                if(subId) {
+                    const subItem = (target.subHutang || []).find(s => s.id === parseInt(subId));
                     if(subItem) {
                         subItem.paid = true;
-                        namaSubTerpilih.push(subItem.nama);
+                        namaSubTerpilih = subItem.nama;
                     }
-                });
+                }
 
                 target.sudahDibayar = (parseFloat(target.sudahDibayar) || 0) + amaunLog;
-                namaTarget = namaSubTerpilih.length > 0
-                    ? `Hutang: ${target.nama} (${namaSubTerpilih.join(', ')})`
+                namaTarget = namaSubTerpilih
+                    ? `Hutang: ${target.nama} (${namaSubTerpilih})`
                     : `Hutang: ${target.nama}`;
                 paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki "${target.nama}".`, "sukses");
             }
@@ -2090,16 +2099,6 @@
                     if (!i.paid) catKomitmen[kat] += i.amaun;
                 });
                 
-                let catHutang = {};
-                data.hutang.forEach(h => {
-                    if (h.status === 'Aktif') {
-                        let kat = h.kategori || "Lain-lain";
-                        if (!catHutang[kat]) catHutang[kat] = 0;
-                        let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
-                        catHutang[kat] += baki;
-                    }
-                });
-
                 let optionsHtml = '<option value="" class="text-slate-900">-- Pilih Kategori Aliran --</option>';
                 optionsHtml += '<optgroup label="📋 Komitmen (Kategori)" class="text-slate-900">';
                 for (let kat in catKomitmen) {
@@ -2108,14 +2107,7 @@
                     }
                 }
                 optionsHtml += '</optgroup>';
-                optionsHtml += '<optgroup label="💳 Hutang (Kategori)" class="text-slate-900">';
-                for (let kat in catHutang) {
-                    if(catHutang[kat] > 0) {
-                        optionsHtml += `<option value="catHut_${kat}" class="text-slate-900">${kat} [Total Baki: RM ${catHutang[kat].toFixed(2)}]</option>`;
-                    }
-                }
-                optionsHtml += '</optgroup>';
-                optionsHtml += '<optgroup label="🎯 Hutang (Akaun Individu)" class="text-slate-900">';
+                optionsHtml += '<optgroup label="💳 Hutang" class="text-slate-900">';
                 data.hutang.forEach(h => {
                     if (h.status === 'Aktif') {
                         let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
