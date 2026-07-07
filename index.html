@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ms" class="h-full">
 <head>
@@ -2167,7 +2168,8 @@
 
             const checklistContainer = document.getElementById('dashboard-checklist-container');
             let itemSelesai = 0;
-            let totalItemChecklist = data.komitmen.length + Object.keys(bakiKategoriSemua).length;
+            // CHANGED: Use ansuranKategori instead of bakiKategoriSemua for the total count
+            let totalItemChecklist = data.komitmen.length + Object.keys(ansuranKategori).length;
 
             if(checklistContainer) {
                 checklistContainer.innerHTML = "";
@@ -2188,9 +2190,10 @@
                     `;
                 });
 
-                for(let kat in bakiKategoriSemua) {
+                // CHANGED: Loop through ansuranKategori to only get monthly debts with their monthly amount
+                for(let kat in ansuranKategori) {
                     let isPaid = data.hutangCatPaid[kat] || false;
-                    let amt = bakiKategoriSemua[kat];
+                    let amt = ansuranKategori[kat];
                     if(isPaid) itemSelesai++;
                     
                     checklistContainer.innerHTML += `
@@ -2821,3 +2824,4 @@
 </script> 
 </body>
 </html>
+```
