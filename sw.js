@@ -1,11 +1,17 @@
-const CACHE_NAME = 'urusduit-v2';
+const CACHE_NAME = 'urusduit-v3-modular';
 const ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/css/styles.css',
+  '/js/core.js',
+  '/js/dashboard.js',
+  '/js/gaji.js',
+  '/js/komitmen.js',
+  '/js/hutang.js',
+  '/js/tetapan.js'
 ];
 
-// Install: pre-cache core assets, then activate immediately
 self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(
@@ -13,7 +19,6 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Activate: delete old caches and take control of open pages right away
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -26,8 +31,6 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Fetch: network-first for navigation/HTML so new deploys show up immediately.
-// Falls back to cache only when offline. Other assets use cache-first.
 self.addEventListener('fetch', (e) => {
   const isNavigation = e.request.mode === 'navigate' ||
     (e.request.method === 'GET' && e.request.headers.get('accept')?.includes('text/html'));
