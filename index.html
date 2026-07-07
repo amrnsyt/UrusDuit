@@ -75,23 +75,6 @@
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
             border-color: #6366f1;
         }
-
-        /* QUICK ADJUST STEPPER BUTTONS (EDIT AMOUNT MODAL) */
-        .quick-adjust-btn {
-            font-size: 10px;
-            font-weight: 800;
-            padding: 8px 0;
-            border-radius: 10px;
-            cursor: pointer;
-            color: #e11d48;
-            background: rgba(225, 29, 72, 0.08);
-            border: 1px solid rgba(225, 29, 72, 0.18);
-            transition: all 0.15s ease;
-        }
-        .quick-adjust-btn:active {
-            transform: scale(0.93);
-            background: rgba(225, 29, 72, 0.18);
-        }
         
         /* LIGHT MODE SPECIFIC TEXT RE-COLOR FOR HIGH CONTRAST (ALL GREY TO BLACK) */
         body.light-theme .text-slate-100,
@@ -260,9 +243,8 @@
             <div id="quick-pay-inputs" class="space-y-4">
                 <div>
                     <label class="text-[10px] uppercase font-bold tracking-wider opacity-70 block mb-1">Pilih Kategori Aliran</label>
-                    <select id="quick-pay-select" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs bg-transparent border shadow-sm" onchange="onQuickPaySelectChange()"></select>
+                    <select id="quick-pay-select" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs bg-transparent border shadow-sm"></select>
                 </div>
-                <div id="quick-pay-hutang-akaun-section" class="hidden bg-amber-500/5 border border-amber-500/15 rounded-2xl p-3"></div>
                 <div>
                     <label class="text-[10px] uppercase font-bold tracking-wider opacity-70 block mb-1">Amaun Yang Dibayar (RM)</label>
                     <div class="relative">
@@ -411,48 +393,6 @@
 
                 <button onclick="tambahKomitmen()" class="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-2.5 rounded-xl cursor-pointer transition-all shadow-lg">
                     Daftar Komitmen
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="edit-amaun-komitmen-modal" class="fixed inset-0 z-[10002] hidden items-center justify-center bg-black/60 backdrop-blur-md px-4" onclick="if(event.target === this) tutupEditAmaunModal()">
-        <div class="liquid-glass glass-card-premium rounded-3xl p-5 w-full max-w-sm ios-spring-in flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-2xl flex items-center justify-center bg-rose-500/15 text-rose-500 text-sm">
-                        <i id="edit-amaun-komitmen-icon" class="fa-solid fa-pen-to-square"></i>
-                    </div>
-                    <div>
-                        <p class="text-[9px] uppercase tracking-wider font-bold opacity-60">Kemaskini Amaun</p>
-                        <h3 id="edit-amaun-komitmen-nama" class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">Komitmen</h3>
-                    </div>
-                </div>
-                <button onclick="tutupEditAmaunModal()" class="text-slate-400 hover:text-slate-200 cursor-pointer w-7 h-7 flex justify-center items-center rounded-full bg-slate-500/20 shrink-0">
-                    <i class="fa-solid fa-xmark text-xs"></i>
-                </button>
-            </div>
-
-            <div class="bg-rose-500/5 border border-rose-500/15 rounded-2xl px-4 py-3.5 flex items-center justify-center gap-1.5 mb-3">
-                <span class="text-sm font-bold text-rose-500 opacity-80">RM</span>
-                <input type="number" step="0.01" inputmode="decimal" id="input-edit-amaun-komitmen"
-                    class="bg-transparent text-center text-2xl font-extrabold text-rose-600 dark:text-rose-400 w-full max-w-[160px] focus:outline-none"
-                    placeholder="0.00" onfocus="this.select()">
-            </div>
-
-            <div class="grid grid-cols-4 gap-2 mb-4">
-                <button type="button" onclick="labKomitmenAmaun(-50)" class="quick-adjust-btn">-50</button>
-                <button type="button" onclick="labKomitmenAmaun(-10)" class="quick-adjust-btn">-10</button>
-                <button type="button" onclick="labKomitmenAmaun(10)" class="quick-adjust-btn">+10</button>
-                <button type="button" onclick="labKomitmenAmaun(50)" class="quick-adjust-btn">+50</button>
-            </div>
-
-            <div class="flex gap-2.5">
-                <button onclick="tutupEditAmaunModal()" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-500/10 hover:bg-slate-500/20 text-slate-500 dark:text-slate-300 cursor-pointer transition-all">
-                    Batal
-                </button>
-                <button onclick="simpanEditAmaunKomitmen()" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 shadow-lg cursor-pointer transition-all flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-check"></i> Simpan
                 </button>
             </div>
         </div>
@@ -1029,7 +969,6 @@
         let toastTimeout = null;
         let modalConfirmAction = null;
         let idHutangSedangDiedit = null;
-        let idKomitmenSedangDiedit = null;
 
         window.onload = function() {
             janaSenaraiBulan();
@@ -1201,68 +1140,6 @@
             document.getElementById('quick-pay-modal').classList.add('hidden');
             document.getElementById('quick-pay-modal').classList.remove('flex');
             document.body.classList.remove('overflow-hidden');
-            const akaunSection = document.getElementById('quick-pay-hutang-akaun-section');
-            if(akaunSection) { akaunSection.classList.add('hidden'); akaunSection.innerHTML = ""; }
-        }
-
-        function onQuickPaySelectChange() {
-            const selectEl = document.getElementById('quick-pay-select');
-            const val = selectEl.value;
-            const akaunSection = document.getElementById('quick-pay-hutang-akaun-section');
-            document.getElementById('quick-pay-amount').value = "";
-
-            if(val && val.startsWith('catHut_')) {
-                const kategori = val.split('_').slice(1).join('_');
-                renderQuickPayHutangAkaunList(kategori);
-                akaunSection.classList.remove('hidden');
-            } else {
-                akaunSection.classList.add('hidden');
-                akaunSection.innerHTML = "";
-            }
-        }
-
-        function renderQuickPayHutangAkaunList(kategori) {
-            const section = document.getElementById('quick-pay-hutang-akaun-section');
-            const data = masterDatabase.bulan[bulanAktif];
-
-            let html = `<label class="text-[9px] uppercase font-bold tracking-wider opacity-70 mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Pilih Akaun Hutang Dalam Kategori Ini</label>`;
-            html += `<select id="quick-pay-hutang-akaun-select" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs bg-transparent border shadow-sm" onchange="onQuickPayHutangAkaunChange()">`;
-            html += `<option value="" class="text-slate-900">-- Bayaran Am Kategori (Automatik) --</option>`;
-
-            let ada = false;
-            data.hutang.forEach(h => {
-                let kat = h.kategori || "Lain-lain";
-                if(kat === kategori && h.status === 'Aktif') {
-                    let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
-                    if(baki > 0) {
-                        ada = true;
-                        html += `<option value="${h.id}" class="text-slate-900">${h.nama} [Baki: RM ${baki.toFixed(2)}]</option>`;
-                    }
-                }
-            });
-            html += `</select>`;
-
-            if(!ada) {
-                html += `<p class="text-[10px] text-slate-500 mt-2">Tiada akaun aktif dalam kategori ini.</p>`;
-            }
-
-            section.innerHTML = html;
-            initCustomDropdown('quick-pay-hutang-akaun-select');
-        }
-
-        function onQuickPayHutangAkaunChange() {
-            const akaunSelectEl = document.getElementById('quick-pay-hutang-akaun-select');
-            const amountInput = document.getElementById('quick-pay-amount');
-            if(!akaunSelectEl) return;
-
-            const hutangId = akaunSelectEl.value;
-            if(!hutangId) { amountInput.value = ""; return; }
-
-            const data = masterDatabase.bulan[bulanAktif];
-            const target = data.hutang.find(h => h.id === parseInt(hutangId));
-            if(!target) return;
-            const baki = Math.max(0, target.jumlahAsal - target.sudahDibayar);
-            amountInput.value = baki.toFixed(2);
         }
 
         function bukaHistoryModal() {
@@ -1424,36 +1301,27 @@
             }
         }
 
-        function toggleHutangCatPaid(kategori) {
+        function toggleHutangPaid(id) {
             const data = masterDatabase.bulan[bulanAktif];
-            if(!data.hutangCatPaid) data.hutangCatPaid = {};
-            data.hutangCatPaid[kategori] = !data.hutangCatPaid[kategori];
+            const h = data.hutang.find(x => x.id === id);
+            if(!h) return;
+
+            h.paid = !h.paid;
             
             if(!data.bayaranHistory) data.bayaranHistory = [];
             
-            if(data.hutangCatPaid[kategori]) {
-                let amt = 0;
-                if(!data.hutang) data.hutang = [];
-                data.hutang.forEach(h => {
-                    if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kategori) {
-                        amt += h.ansuran;
-                        h.sudahDibayar += h.ansuran;
-                        if(h.sudahDibayar > h.jumlahAsal) h.sudahDibayar = h.jumlahAsal;
-                    }
-                });
+            if(h.paid) {
+                h.sudahDibayar += h.ansuran;
+                if(h.sudahDibayar > h.jumlahAsal) h.sudahDibayar = h.jumlahAsal;
+                
                 const t = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
                 data.bayaranHistory.push({
-                    id: Date.now(), tipe: 'catHutCheck', targetId: kategori, nama: `Ansuran Hutang: ${kategori}`, amaun: amt, tarikh: t
+                    id: Date.now(), tipe: 'hutCheck', targetId: h.id, nama: `Ansuran Hutang: ${h.nama}`, amaun: h.ansuran, tarikh: t
                 });
             } else {
-                if(!data.hutang) data.hutang = [];
-                data.hutang.forEach(h => {
-                    if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kategori) {
-                        h.sudahDibayar -= h.ansuran;
-                        if(h.sudahDibayar < 0) h.sudahDibayar = 0;
-                    }
-                });
-                data.bayaranHistory = data.bayaranHistory.filter(h => !(h.tipe === 'catHutCheck' && h.targetId === kategori));
+                h.sudahDibayar -= h.ansuran;
+                if(h.sudahDibayar < 0) h.sudahDibayar = 0;
+                data.bayaranHistory = data.bayaranHistory.filter(log => !(log.tipe === 'hutCheck' && log.targetId === h.id));
             }
             
             simpanKeLocalStorage();
@@ -1488,32 +1356,17 @@
                 namaTarget = `Kategori Komitmen: ${namaKategori}`;
                 paparToast("Bayaran Dikemaskini", `Komitmen kategori "${namaKategori}" dikemaskini.`, "sukses");
             } else if(jenis === 'catHut') {
-                const akaunSelectEl = document.getElementById('quick-pay-hutang-akaun-select');
-                const hutangIdVal = akaunSelectEl ? akaunSelectEl.value : "";
-
-                if(hutangIdVal) {
-                    const target = data.hutang.find(h => h.id === parseInt(hutangIdVal));
-                    if(!target) {
-                        paparToast("Ralat", "Akaun hutang tidak dijumpai.", "amaran");
-                        return;
+                data.hutang.forEach(h => {
+                    let kat = h.kategori || "Lain-lain";
+                    if(kat === namaKategori && h.status === 'Aktif' && remaining > 0) {
+                        let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                        let payAmt = Math.min(baki, remaining);
+                        h.sudahDibayar += payAmt;
+                        remaining -= payAmt;
                     }
-
-                    target.sudahDibayar = (parseFloat(target.sudahDibayar) || 0) + amaunLog;
-                    namaTarget = `Hutang: ${target.nama}`;
-                    paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki "${target.nama}".`, "sukses");
-                } else {
-                    data.hutang.forEach(h => {
-                        let kat = h.kategori || "Lain-lain";
-                        if(kat === namaKategori && h.status === 'Aktif' && remaining > 0) {
-                            let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
-                            let payAmt = Math.min(baki, remaining);
-                            h.sudahDibayar += payAmt;
-                            remaining -= payAmt;
-                        }
-                    });
-                    namaTarget = `Kategori Hutang: ${namaKategori}`;
-                    paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki kategori "${namaKategori}".`, "sukses");
-                }
+                });
+                namaTarget = `Kategori Hutang: ${namaKategori}`;
+                paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki kategori "${namaKategori}".`, "sukses");
             }
 
             if(!data.bayaranHistory) data.bayaranHistory = [];
@@ -1568,7 +1421,7 @@
                         }
                     }
                 }
-            } else if (logItem.tipe === 'catKom' || logItem.tipe === 'catHutCheck') {
+            } else if (logItem.tipe === 'catKom' || logItem.tipe === 'catHutCheck' || logItem.tipe === 'hutCheck') {
                 paparToast("Makluman", "Log diedit. Sila pastikan status semakan/ansuran di dalam senarai adalah tepat.", "info");
             }
 
@@ -1616,6 +1469,13 @@
                         if(h.sudahDibayar < 0) h.sudahDibayar = 0;
                     }
                 });
+            } else if(logItem.tipe === 'hutCheck') {
+                const h = data.hutang.find(x => x.id === logItem.targetId);
+                if(h) {
+                    h.paid = false;
+                    h.sudahDibayar -= logItem.amaun;
+                    if(h.sudahDibayar < 0) h.sudahDibayar = 0;
+                }
             }
 
             data.bayaranHistory.splice(idxLog, 1);
@@ -1636,47 +1496,14 @@
         }
 
         function editAmaunKomitmen(id) {
-            bukaEditAmaunModal(id);
-        }
-
-        function bukaEditAmaunModal(id) {
             const data = masterDatabase.bulan[bulanAktif];
             const item = data.komitmen.find(k => k.id === id);
             if(!item) return;
 
-            idKomitmenSedangDiedit = id;
-            document.getElementById('edit-amaun-komitmen-nama').innerText = item.nama;
-            document.getElementById('edit-amaun-komitmen-icon').className = `fa-solid ${item.icon || 'fa-pen-to-square'}`;
-            const inputEl = document.getElementById('input-edit-amaun-komitmen');
-            inputEl.value = item.amaun.toFixed(2);
+            const amaunBaruInput = prompt(`Kemaskini Amaun untuk "${item.nama}":`, item.amaun);
+            if(amaunBaruInput === null) return;
 
-            const modal = document.getElementById('edit-amaun-komitmen-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => { inputEl.focus(); inputEl.select(); }, 150);
-        }
-
-        function tutupEditAmaunModal() {
-            const modal = document.getElementById('edit-amaun-komitmen-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            idKomitmenSedangDiedit = null;
-        }
-
-        function labKomitmenAmaun(delta) {
-            const inputEl = document.getElementById('input-edit-amaun-komitmen');
-            const semasa = parseFloat(inputEl.value) || 0;
-            const baru = Math.max(0, semasa + delta);
-            inputEl.value = baru.toFixed(2);
-        }
-
-        function simpanEditAmaunKomitmen() {
-            if(idKomitmenSedangDiedit === null) return;
-            const data = masterDatabase.bulan[bulanAktif];
-            const item = data.komitmen.find(k => k.id === idKomitmenSedangDiedit);
-            if(!item) return;
-
-            const amaunBaru = parseFloat(document.getElementById('input-edit-amaun-komitmen').value);
+            const amaunBaru = parseFloat(amaunBaruInput);
             if(isNaN(amaunBaru) || amaunBaru < 0) {
                 paparToast("Ralat Amaun", "Sila masukkan amaun yang sah.", "amaran");
                 return;
@@ -1685,7 +1512,6 @@
             item.amaun = amaunBaru;
             simpanKeLocalStorage();
             kemaskiniSemuaPaparan();
-            tutupEditAmaunModal();
             paparToast("Berjaya Dikemaskini", `Amaun "${item.nama}" telah dikemaskini kepada RM ${amaunBaru.toFixed(2)}.`, "sukses");
         }
 
@@ -1779,7 +1605,7 @@
             select.innerHTML = `
                 <option value="fa-house" class="text-slate-900">🏠 Rumah</option>
                 <option value="fa-car" class="text-slate-900">🚗 Kenderaan</option>
-                <option value="fa-credit-card" class="text-slate-900">?? Kad Kredit</option>
+                <option value="fa-credit-card" class="text-slate-900">💳 Kad Kredit</option>
                 <option value="fa-bolt" class="text-slate-900">⚡ Bil / Utiliti</option>
                 <option value="fa-heart" class="text-slate-900">❤️ Takaful</option>
             `;
@@ -1809,7 +1635,6 @@
             initCustomDropdown('input-kategori-hutang');
         }
 
-        // NEW: Only list active categories that have an active amount/balance
         function segarkanDropdownTapisanKategoriHutang() {
             const selectFilter = document.getElementById('filter-hutang-kategori');
             if(!selectFilter) return;
@@ -1820,7 +1645,6 @@
             
             if(data && data.hutang) {
                 data.hutang.forEach(h => {
-                    // Category has an active debt amount
                     if (h.status === 'Aktif' && (h.jumlahAsal - h.sudahDibayar) > 0) {
                         activeCategories.add(h.kategori || "Lain-lain");
                     }
@@ -1986,7 +1810,6 @@
         function kemaskiniSemuaPaparan() {
             const data = masterDatabase.bulan[bulanAktif];
             if(!data.bayaranHistory) data.bayaranHistory = [];
-            if(!data.hutangCatPaid) data.hutangCatPaid = {};
 
             const kadarJamAsas = (data.gajiPokok / 26 / 8);
             const totalOt15 = data.ot15 * (kadarJamAsas * 1.5);
@@ -2024,8 +1847,9 @@
             let totalBakiHutang = 0;
             let totalBakiAnsuran = 0; 
             let totalBakiBiasa = 0;    
-            let ansuranKategori = {};
-            let bakiKategoriSemua = {};
+            
+            let hutangBelumBayar = 0;
+            let hutangSudahBayar = 0;
             
             if(!data.hutang) data.hutang = [];
             
@@ -2033,34 +1857,19 @@
                 let bakiHutangAkaun = Math.max(0, h.jumlahAsal - h.sudahDibayar);
                 totalBakiHutang += bakiHutangAkaun;
 
-                if(h.status === 'Aktif') {
-                    let katSemua = h.kategori || "Lain-lain";
-                    if(!bakiKategoriSemua[katSemua]) bakiKategoriSemua[katSemua] = 0;
-                    bakiKategoriSemua[katSemua] += bakiHutangAkaun;
-                }
-
                 if(h.status === 'Aktif' && h.isMonthlyPay !== false) {
                     totalAnsuranHutang += h.ansuran;
-                    let kat = h.kategori || "Lain-lain";
-                    if(!ansuranKategori[kat]) ansuranKategori[kat] = 0;
-                    ansuranKategori[kat] += h.ansuran;
                     totalBakiAnsuran += bakiHutangAkaun; 
+                    
+                    if(h.paid) {
+                        hutangSudahBayar += h.ansuran;
+                    } else {
+                        hutangBelumBayar += h.ansuran;
+                    }
                 } else if(h.status === 'Aktif') {
                     totalBakiBiasa += bakiHutangAkaun; 
                 }
             });
-
-            let hutangBelumBayar = 0;
-            let hutangSudahBayar = 0;
-
-            for(let kat in ansuranKategori) {
-                let amt = ansuranKategori[kat];
-                if(data.hutangCatPaid[kat]) {
-                    hutangSudahBayar += amt;
-                } else {
-                    hutangBelumBayar += amt;
-                }
-            }
 
             const bakiSebenarSelepasSemua = bakiGajiBersih - totalKomitmen - totalAnsuranHutang;
 
@@ -2144,7 +1953,7 @@
                 } else {
                     senaraiLog.forEach(log => {
                         totalAmaunSejarah += log.amaun;
-                        let labelTipe = log.tipe === 'catHut' ? '💳 Hutang (Baki)' : (log.tipe === 'catHutCheck' ? '💳 Hutang (Ansuran)' : '📋 Komitmen');
+                        let labelTipe = log.tipe === 'catHut' ? '💳 Hutang (Baki)' : ((log.tipe === 'catHutCheck' || log.tipe === 'hutCheck') ? '💳 Hutang (Ansuran)' : '📋 Komitmen');
                         sejarahContainer.innerHTML += `
                             <div class="flex justify-between items-center bg-slate-500/10 dark:bg-white/5 border border-slate-300 dark:border-transparent p-2.5 rounded-xl text-[10px] hover:bg-slate-500/20 transition-colors">
                                 <div class="flex flex-col">
@@ -2167,7 +1976,13 @@
 
             const checklistContainer = document.getElementById('dashboard-checklist-container');
             let itemSelesai = 0;
-            let totalItemChecklist = data.komitmen.length + Object.keys(bakiKategoriSemua).length;
+            let totalItemChecklist = data.komitmen.length;
+
+            data.hutang.forEach(h => {
+                if(h.status === 'Aktif' && h.isMonthlyPay !== false) {
+                    totalItemChecklist++;
+                }
+            });
 
             if(checklistContainer) {
                 checklistContainer.innerHTML = "";
@@ -2188,21 +2003,20 @@
                     `;
                 });
 
-                for(let kat in bakiKategoriSemua) {
-                    let isPaid = data.hutangCatPaid[kat] || false;
-                    let amt = bakiKategoriSemua[kat];
-                    if(isPaid) itemSelesai++;
-                    
-                    checklistContainer.innerHTML += `
-                        <div class="flex justify-between items-center bg-amber-500/5 border border-amber-500/20 p-2.5 rounded-xl text-xs hover:border-amber-500/30 transition-all">
-                            <div class="flex items-center gap-2.5">
-                                <input type="checkbox" class="ios-checkbox" onchange="toggleHutangCatPaid('${kat}')" ${isPaid ? 'checked' : ''}>
-                                <span class="font-bold text-slate-800 dark:text-slate-200 ${isPaid ? 'line-through opacity-40' : ''}">💳 Hutang: ${kat}</span>
+                data.hutang.forEach(h => {
+                    if(h.status === 'Aktif' && h.isMonthlyPay !== false) {
+                        if(h.paid) itemSelesai++;
+                        checklistContainer.innerHTML += `
+                            <div class="flex justify-between items-center bg-amber-500/5 border border-amber-500/20 p-2.5 rounded-xl text-xs hover:border-amber-500/30 transition-all">
+                                <div class="flex items-center gap-2.5">
+                                    <input type="checkbox" class="ios-checkbox" onchange="toggleHutangPaid(${h.id})" ${h.paid ? 'checked' : ''}>
+                                    <span class="font-bold text-slate-800 dark:text-slate-200 ${h.paid ? 'line-through opacity-40' : ''}">💳 Hutang: ${h.nama}</span>
+                                </div>
+                                <span class="font-extrabold ${h.paid ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-500'}">RM ${h.ansuran.toFixed(2)}</span>
                             </div>
-                            <span class="font-extrabold ${isPaid ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-500'}">RM ${amt.toFixed(2)}</span>
-                        </div>
-                    `;
-                }
+                        `;
+                    }
+                });
 
                 document.getElementById('checklist-progresi').innerText = `${itemSelesai}/${totalItemChecklist} Setel`;
             }
@@ -2218,7 +2032,7 @@
                                 <span class="font-bold">${item.nama}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="font-extrabold text-rose-600 dark:text-rose-400 cursor-pointer underline decoration-dotted underline-offset-2" onclick="bukaEditAmaunModal(${item.id})">RM ${item.amaun.toFixed(2)}</span>
+                                <span class="font-extrabold text-rose-600 dark:text-rose-400 cursor-pointer underline decoration-dotted underline-offset-2" onclick="editAmaunKomitmen(${item.id})">RM ${item.amaun.toFixed(2)}</span>
                                 <button onclick="mohonPadamKomitmen(${item.id}, '${item.nama}')" class="text-slate-400 hover:text-rose-500 cursor-pointer w-6 h-6 flex items-center justify-center rounded-md"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
                             </div>
                         </div>`;
@@ -2380,7 +2194,7 @@
             const target = data.hutang.find(h => h.id === idHutangSedangDiedit);
             if (!target) return;
             if (!target.subHutang) target.subHutang = [];
-            target.subHutang.push({ id: Date.now(), nama, tarikh, amaun, paid: false });
+            target.subHutang.push({ id: Date.now(), nama, tarikh, amaun });
             target.jumlahAsal = (parseFloat(target.jumlahAsal) || 0) + amaun;
 
             document.getElementById('input-nama-subhutang').value = "";
@@ -2485,7 +2299,6 @@
         }
         
         function eksportData() {
-            // NEW: Modified export path structure
             const dataStr = JSON.stringify(masterDatabase, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -2502,10 +2315,6 @@
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", url);
             
-            // Note: Modern browsers restrict web applications from forcing custom file paths 
-            // directly onto Internal Storage without a picker API. Adding the relative path 
-            // "UrusDuit/Backup/" will prompt the browser to generate this folder if its 
-            // permission settings allow it, otherwise it downloads strictly to 'Downloads'.
             downloadAnchorNode.setAttribute("download", "UrusDuit/Backup/" + fileName);
             
             document.body.appendChild(downloadAnchorNode);
@@ -2538,7 +2347,6 @@
             reader.readAsText(file);
         }
 
-        // NEW TEMPLATE FUNCTIONS FOR LAPORAN KHAS
         function muatSenaraiTemplateLaporan() {
             const select = document.getElementById('select-laporan-template');
             if(!masterDatabase.laporanTemplates) masterDatabase.laporanTemplates = {};
@@ -2560,9 +2368,11 @@
             checkedBoxes.forEach(box => {
                 if(box.value.startsWith('kom_')) {
                     templateData.komitmenIds.push(box.value);
+                } else if(box.value.startsWith('hut_')) {
+                    templateData.hutangGroups.push(box.value); 
                 } else if(box.value.startsWith('hutgrp_')) {
                     let kat = box.value.split('_')[1];
-                    templateData.hutangGroups.push(kat);
+                    templateData.hutangGroups.push('hutgrp_' + kat);
                 }
             });
 
@@ -2591,9 +2401,14 @@
                 if(cb) cb.checked = true;
             });
 
-            tpl.hutangGroups.forEach(kat => {
-                let cb = document.querySelector(`#laporan-modal input[value^="hutgrp_${kat}_"]`);
-                if(cb) cb.checked = true;
+            tpl.hutangGroups.forEach(val => {
+                if(val.startsWith('hut_')) {
+                    let cb = document.querySelector(`#laporan-modal input[value="${val}"]`);
+                    if(cb) cb.checked = true;
+                } else {
+                    let cb = document.querySelector(`#laporan-modal input[value^="hutgrp_${val}_"]`);
+                    if(cb) cb.checked = true;
+                }
             });
         }
 
@@ -2646,56 +2461,28 @@
             });
 
             if(!data.hutang) data.hutang = [];
-            
-            if(!data.hutangCatPaid) data.hutangCatPaid = {};
-
-            const groupedHutang = {};
-            data.hutang.forEach(h => {
-                let kat = h.kategori || "Lain-lain";
-                let sudahSetelBulanIni = h.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
-                if (isHutangSelesai(h) && !sudahSetelBulanIni) return;
-                if(!groupedHutang[kat]) {
-                    groupedHutang[kat] = { totalBaki: 0, monthlyAnsuranSum: 0, hasMonthly: false, hasAdhoc: false, adhocLogAmount: 0 };
-                }
-                groupedHutang[kat].totalBaki += Math.max(0, h.jumlahAsal - h.sudahDibayar);
-                if (h.isMonthlyPay !== false) {
-                    groupedHutang[kat].monthlyAnsuranSum += h.ansuran;
-                    groupedHutang[kat].hasMonthly = true;
-                } else {
-                    groupedHutang[kat].hasAdhoc = true;
-                }
-            });
-
-            if (data.bayaranHistory) {
-                data.bayaranHistory.forEach(log => {
-                    if (log.tipe === 'catHut' && groupedHutang[log.targetId] && groupedHutang[log.targetId].hasAdhoc) {
-                        groupedHutang[log.targetId].adhocLogAmount += log.amaun;
-                    }
-                });
-            }
 
             let bilHutangAktif = 0;
-            for (let kat in groupedHutang) {
-                let grp = groupedHutang[kat];
-                let sudahSetel = grp.hasMonthly && !!data.hutangCatPaid[kat];
-                bilHutangAktif++;
-                let amountForReport = grp.monthlyAnsuranSum + grp.adhocLogAmount;
-                let infoTambahan = grp.hasAdhoc ? `<span class="text-[8px] font-bold text-indigo-400 mt-0.5"><i class="fa-solid fa-bolt"></i> Dari Log Bayaran: RM ${grp.adhocLogAmount.toFixed(2)}</span>` : '';
-                let badgeSetel = sudahSetel ? `<span class="text-[8px] font-bold text-emerald-500 mt-0.5"><i class="fa-solid fa-circle-check"></i> Sudah Setel</span>` : '';
+            data.hutang.forEach(h => {
+                if(h.status === 'Aktif' && h.isMonthlyPay !== false) {
+                    bilHutangAktif++;
+                    let sudahSetel = h.paid;
+                    let amountForReport = h.ansuran;
+                    let badgeSetel = sudahSetel ? `<span class="text-[8px] font-bold text-emerald-500 mt-0.5"><i class="fa-solid fa-circle-check"></i> Sudah Setel</span>` : '';
 
-                hutangList.innerHTML += `
-                    <label class="flex items-center gap-3 text-[10px] bg-slate-500/5 hover:bg-slate-500/10 p-2.5 rounded-lg border border-slate-500/10 cursor-pointer transition-colors">
-                        <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="hutgrp_${kat}_${amountForReport}" ${sudahSetel ? 'checked' : ''}>
-                        <div class="flex-1 flex flex-col ${sudahSetel ? 'opacity-60' : ''}">
-                            <span class="font-semibold">Kategori Hutang: ${kat}</span>
-                            <span class="text-[8px] opacity-70 mt-0.5">Outstanding Baki: RM ${grp.totalBaki.toFixed(2)}</span>
-                            ${infoTambahan}
-                            ${badgeSetel}
-                        </div>
-                        <span class="font-bold text-amber-500 shrink-0">RM ${amountForReport.toFixed(2)}</span>
-                    </label>
-                `;
-            }
+                    hutangList.innerHTML += `
+                        <label class="flex items-center gap-3 text-[10px] bg-slate-500/5 hover:bg-slate-500/10 p-2.5 rounded-lg border border-slate-500/10 cursor-pointer transition-colors">
+                            <input type="checkbox" class="ios-checkbox w-4 h-4 shrink-0" value="hut_${h.id}" ${sudahSetel ? 'checked' : ''}>
+                            <div class="flex-1 flex flex-col ${sudahSetel ? 'opacity-60' : ''}">
+                                <span class="font-semibold">${h.nama}</span>
+                                <span class="text-[8px] opacity-70 mt-0.5">Kategori: ${h.kategori || 'Lain-lain'} | Baki: RM ${Math.max(0, h.jumlahAsal - h.sudahDibayar).toFixed(2)}</span>
+                                ${badgeSetel}
+                            </div>
+                            <span class="font-bold text-amber-500 shrink-0">RM ${amountForReport.toFixed(2)}</span>
+                        </label>
+                    `;
+                }
+            });
 
             if(bilKomitmenAktif === 0) komitmenList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod komitmen aktif bulan ini.</p>';
             if(bilHutangAktif === 0) hutangList.innerHTML = '<p class="text-[10px] opacity-50 italic px-2">Tiada rekod hutang aktif bulan ini (semua sudah setel).</p>';
@@ -2739,31 +2526,31 @@
                         total += k.amaun;
                         hasKomitmen = true;
                     }
+                } else if(val.startsWith('hut_')) {
+                    const id = parseInt(val.split('_')[1]);
+                    const h = data.hutang.find(x => x.id === id);
+                    if(h) {
+                        let bakiInd = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                        hutangText += `🔸 ${h.nama}: RM ${h.ansuran.toFixed(2)}\n   (Baki Terkini: RM ${bakiInd.toFixed(2)})\n`;
+                        total += h.ansuran;
+                        hasHutang = true;
+                    }
                 } else if(val.startsWith('hutgrp_')) {
                     const parts = val.split('_');
                     const kat = parts[1];
 
                     let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && (!isHutangSelesai(x) || (x.isMonthlyPay !== false && data.hutangCatPaid && data.hutangCatPaid[kat])));
                     if(itemsInKat.length > 0) {
-                        let adhocItems = itemsInKat.filter(x => x.isMonthlyPay === false);
-                        let adhocLogTotal = 0;
-                        if (data.bayaranHistory) {
-                            data.bayaranHistory.forEach(log => {
-                                if (log.tipe === 'catHut' && log.targetId === kat) adhocLogTotal += log.amaun;
-                            });
-                        }
-                        let adhocPerItem = adhocItems.length > 0 ? (adhocLogTotal / adhocItems.length) : 0;
                         let katTotal = 0;
-
                         itemsInKat.forEach(x => {
                             let bakiInd = Math.max(0, x.jumlahAsal - x.sudahDibayar);
-                            let amtInd = x.isMonthlyPay !== false ? x.ansuran : adhocPerItem;
+                            let amtInd = x.ansuran;
                             katTotal += amtInd;
-                            hutangText += `🔸 ${x.nama}: RM ${amtInd.toFixed(2)}\n   (Baki Terkini: RM ${bakiInd.toFixed(2)})\n`;
+                            hutangText += `🔸 [Legasi] ${x.nama}: RM ${amtInd.toFixed(2)}\n   (Baki Terkini: RM ${bakiInd.toFixed(2)})\n`;
                         });
                         total += katTotal;
+                        hasHutang = true;
                     }
-                    hasHutang = true;
                 }
             });
 
