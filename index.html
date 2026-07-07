@@ -263,7 +263,6 @@
                     <select id="quick-pay-select" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs bg-transparent border shadow-sm" onchange="onQuickPaySelectChange()"></select>
                 </div>
                 <div id="quick-pay-hutang-akaun-section" class="hidden bg-amber-500/5 border border-amber-500/15 rounded-2xl p-3"></div>
-                <div id="quick-pay-subhutang-section" class="hidden bg-purple-500/5 border border-purple-500/15 rounded-2xl p-3"></div>
                 <div>
                     <label class="text-[10px] uppercase font-bold tracking-wider opacity-70 block mb-1">Amaun Yang Dibayar (RM)</label>
                     <div class="relative">
@@ -1204,18 +1203,13 @@
             document.body.classList.remove('overflow-hidden');
             const akaunSection = document.getElementById('quick-pay-hutang-akaun-section');
             if(akaunSection) { akaunSection.classList.add('hidden'); akaunSection.innerHTML = ""; }
-            const subSection = document.getElementById('quick-pay-subhutang-section');
-            if(subSection) { subSection.classList.add('hidden'); subSection.innerHTML = ""; }
         }
 
         function onQuickPaySelectChange() {
             const selectEl = document.getElementById('quick-pay-select');
             const val = selectEl.value;
             const akaunSection = document.getElementById('quick-pay-hutang-akaun-section');
-            const subSection = document.getElementById('quick-pay-subhutang-section');
             document.getElementById('quick-pay-amount').value = "";
-            subSection.classList.add('hidden');
-            subSection.innerHTML = "";
 
             if(val && val.startsWith('catHut_')) {
                 const kategori = val.split('_').slice(1).join('_');
@@ -1258,61 +1252,17 @@
 
         function onQuickPayHutangAkaunChange() {
             const akaunSelectEl = document.getElementById('quick-pay-hutang-akaun-select');
-            const subSection = document.getElementById('quick-pay-subhutang-section');
             const amountInput = document.getElementById('quick-pay-amount');
             if(!akaunSelectEl) return;
 
             const hutangId = akaunSelectEl.value;
-            amountInput.value = "";
+            if(!hutangId) { amountInput.value = ""; return; }
 
-            if(!hutangId) {
-                subSection.classList.add('hidden');
-                subSection.innerHTML = "";
-                return;
-            }
-
-            renderQuickPaySubHutangList(parseInt(hutangId));
-            subSection.classList.remove('hidden');
-        }
-
-        function renderQuickPaySubHutangList(hutangId) {
-            const section = document.getElementById('quick-pay-subhutang-section');
             const data = masterDatabase.bulan[bulanAktif];
-            const target = data.hutang.find(h => h.id === hutangId);
-            if(!target) { section.innerHTML = ""; return; }
-
-            const subList = (target.subHutang || []).filter(s => !s.paid);
-
-            let html = `<label class="text-[9px] uppercase font-bold tracking-wider opacity-70 mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-layer-group"></i> Pilih Sub-Hutang Untuk Dibayar</label>`;
-            html += `<select id="quick-pay-subhutang-select" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs bg-transparent border shadow-sm" onchange="onQuickPaySubHutangChange()">`;
-            html += `<option value="" class="text-slate-900">-- Bayaran Am / Ansuran Pokok --</option>`;
-            subList.forEach(s => {
-                html += `<option value="${s.id}" class="text-slate-900">${s.nama} (RM ${parseFloat(s.amaun).toFixed(2)})</option>`;
-            });
-            html += `</select>`;
-
-            if(subList.length === 0) {
-                html += `<p class="text-[10px] text-slate-500 mt-2">Tiada sub-hutang belum bayar bagi akaun ini. Amaun akan ditolak terus dari baki utama.</p>`;
-            }
-
-            section.innerHTML = html;
-            initCustomDropdown('quick-pay-subhutang-select');
-        }
-
-        function onQuickPaySubHutangChange() {
-            const subSelectEl = document.getElementById('quick-pay-subhutang-select');
-            const akaunSelectEl = document.getElementById('quick-pay-hutang-akaun-select');
-            const amountInput = document.getElementById('quick-pay-amount');
-            if(!subSelectEl || !akaunSelectEl) return;
-            const subId = subSelectEl.value;
-            if(!subId) { amountInput.value = ""; return; }
-
-            const hutangId = parseInt(akaunSelectEl.value);
-            const data = masterDatabase.bulan[bulanAktif];
-            const target = data.hutang.find(h => h.id === hutangId);
+            const target = data.hutang.find(h => h.id === parseInt(hutangId));
             if(!target) return;
-            const subItem = (target.subHutang || []).find(s => s.id === parseInt(subId));
-            if(subItem) amountInput.value = parseFloat(subItem.amaun).toFixed(2);
+            const baki = Math.max(0, target.jumlahAsal - target.sudahDibayar);
+            amountInput.value = baki.toFixed(2);
         }
 
         function bukaHistoryModal() {
@@ -1548,22 +1498,8 @@
                         return;
                     }
 
-                    const subSelectEl = document.getElementById('quick-pay-subhutang-select');
-                    const subId = subSelectEl ? subSelectEl.value : "";
-                    let namaSubTerpilih = "";
-
-                    if(subId) {
-                        const subItem = (target.subHutang || []).find(s => s.id === parseInt(subId));
-                        if(subItem) {
-                            subItem.paid = true;
-                            namaSubTerpilih = subItem.nama;
-                        }
-                    }
-
                     target.sudahDibayar = (parseFloat(target.sudahDibayar) || 0) + amaunLog;
-                    namaTarget = namaSubTerpilih
-                        ? `Hutang: ${target.nama} (${namaSubTerpilih})`
-                        : `Hutang: ${target.nama}`;
+                    namaTarget = `Hutang: ${target.nama}`;
                     paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki "${target.nama}".`, "sukses");
                 } else {
                     data.hutang.forEach(h => {
