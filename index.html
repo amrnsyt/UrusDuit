@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ms" class="h-full">
 <head>
@@ -2021,6 +2020,17 @@
                 else komitmenBelumBayar += i.amaun;
             });
 
+            // NEW: Gather Quick Pay totals specific to this month
+            let quickPayHutang = {};
+            if (data.bayaranHistory) {
+                data.bayaranHistory.forEach(log => {
+                    if (log.tipe === 'catHut') { // 'catHut' means Quick Pay applied to Debt
+                        if (!quickPayHutang[log.targetId]) quickPayHutang[log.targetId] = 0;
+                        quickPayHutang[log.targetId] += log.amaun;
+                    }
+                });
+            }
+
             let totalAnsuranHutang = 0;
             let totalBakiHutang = 0;
             let totalBakiAnsuran = 0; 
@@ -2055,11 +2065,17 @@
             let hutangSudahBayar = 0;
 
             for(let kat in ansuranKategori) {
+                let isPaid = data.hutangCatPaid[kat] || false;
                 let amt = ansuranKategori[kat];
-                if(data.hutangCatPaid[kat]) {
+                let quickPaid = quickPayHutang[kat] || 0;
+                
+                if(isPaid) {
                     hutangSudahBayar += amt;
                 } else {
-                    hutangBelumBayar += amt;
+                    // NEW: Safely deduct Quick Pay amounts from the remaining Belum Setel calculation
+                    let remaining = Math.max(0, amt - quickPaid);
+                    hutangBelumBayar += remaining;
+                    hutangSudahBayar += Math.min(amt, quickPaid);
                 }
             }
 
@@ -2168,7 +2184,6 @@
 
             const checklistContainer = document.getElementById('dashboard-checklist-container');
             let itemSelesai = 0;
-            // CHANGED: Use ansuranKategori instead of bakiKategoriSemua for the total count
             let totalItemChecklist = data.komitmen.length + Object.keys(ansuranKategori).length;
 
             if(checklistContainer) {
@@ -2190,19 +2205,28 @@
                     `;
                 });
 
-                // CHANGED: Loop through ansuranKategori to only get monthly debts with their monthly amount
                 for(let kat in ansuranKategori) {
                     let isPaid = data.hutangCatPaid[kat] || false;
-                    let amt = ansuranKategori[kat];
-                    if(isPaid) itemSelesai++;
+                    let targetAnsuranPenuh = ansuranKategori[kat];
+                    let quickPaidAmount = quickPayHutang[kat] || 0;
+                    
+                    // NEW: Calculate amount left to show after taking Quick Payments into account
+                    let amtToShow = Math.max(0, targetAnsuranPenuh - quickPaidAmount);
+                    let isCompleted = isPaid || amtToShow <= 0;
+
+                    if (isCompleted) itemSelesai++;
+                    
+                    // If it's already checked via the checkbox, display the full target to avoid confusion. 
+                    // Otherwise, display whatever remaining balance is left to pay for the month.
+                    let displayAmount = isPaid ? targetAnsuranPenuh : amtToShow;
                     
                     checklistContainer.innerHTML += `
                         <div class="flex justify-between items-center bg-amber-500/5 border border-amber-500/20 p-2.5 rounded-xl text-xs hover:border-amber-500/30 transition-all">
                             <div class="flex items-center gap-2.5">
-                                <input type="checkbox" class="ios-checkbox" onchange="toggleHutangCatPaid('${kat}')" ${isPaid ? 'checked' : ''}>
-                                <span class="font-bold text-slate-800 dark:text-slate-200 ${isPaid ? 'line-through opacity-40' : ''}">💳 Hutang: ${kat}</span>
+                                <input type="checkbox" class="ios-checkbox" onchange="toggleHutangCatPaid('${kat}')" ${isPaid ? 'checked' : ''} ${(!isPaid && amtToShow <= 0) ? 'disabled' : ''}>
+                                <span class="font-bold text-slate-800 dark:text-slate-200 ${isCompleted ? 'line-through opacity-40' : ''}">💳 Hutang: ${kat}</span>
                             </div>
-                            <span class="font-extrabold ${isPaid ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-500'}">RM ${amt.toFixed(2)}</span>
+                            <span class="font-extrabold ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-500'}">RM ${displayAmount.toFixed(2)}</span>
                         </div>
                     `;
                 }
