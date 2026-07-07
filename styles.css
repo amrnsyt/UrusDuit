@@ -1,0 +1,23 @@
+/* Custom Options Dropdown Styling that gets injected dynamically */
+.custom-options {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+}
+body.light-theme .custom-options > div {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #f1f5f9 !important;
+}
+body.light-theme .custom-options > div.sticky {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    opacity: 1 !important;
+}
+body.light-theme .custom-options > div:hover:not(.sticky) {
+    background-color: #f1f5f9 !important;
+}
+body.light-theme .custom-options > div.bg-indigo-50 {
+    background-color: #e0e7ff !important;
+    color: #4f46e5 !important;
+    font-weight: bold !important;
+}
