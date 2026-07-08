@@ -90,6 +90,8 @@ function segarkanDropdownHutangKategori() {
 function segarkanDropdownTapisanKategoriHutang() {
     const selectFilter = document.getElementById('filter-hutang-kategori');
     if(!selectFilter) return;
+
+    const nilaiTerdahulu = selectFilter.value || 'semua';
     
     let html = '<option value="semua" class="text-slate-900">Semua Hutang</option>';
     const data = masterDatabase.bulan[bulanAktif];
@@ -108,6 +110,10 @@ function segarkanDropdownTapisanKategoriHutang() {
     });
 
     selectFilter.innerHTML = html;
+
+    const masihWujud = Array.from(selectFilter.options).some(opt => opt.value === nilaiTerdahulu);
+    selectFilter.value = masihWujud ? nilaiTerdahulu : 'semua';
+
     initCustomDropdown('filter-hutang-kategori');
 }
 
