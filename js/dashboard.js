@@ -1,3 +1,372 @@
+// ============================================================
+// UrusDuit — DASHBOARD — Main Render, Quick Pay, Payment History
+// ============================================================
+
+function janaSenaraiBulanSejarah() {
+    const selectSejarah = document.getElementById('select-bulan-sejarah');
+    if(!selectSejarah) return;
+
+    let html = '';
+    const namaBulan = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
+    let adaRekod = false;
+
+    let availableMonths = Object.keys(masterDatabase.bulan).sort();
+    availableMonths.forEach(b => {
+        let data = masterDatabase.bulan[b];
+        if (data && data.bayaranHistory && data.bayaranHistory.length > 0) {
+            let [y, m] = b.split('-');
+            let teksBulan = `${namaBulan[parseInt(m) - 1]} ${y}`;
+            html += `<option value="${b}" class="text-slate-900">${teksBulan}</option>`;
+            adaRekod = true;
+        }
+    });
+
+    if (!adaRekod) {
+        let [y, m] = bulanAktif.split('-');
+        let teksBulan = `${namaBulan[parseInt(m) - 1]} ${y}`;
+        html += `<option value="${bulanAktif}" class="text-slate-900">${teksBulan}</option>`;
+    }
+
+    let prevVal = selectSejarah.value;
+    selectSejarah.innerHTML = html;
+    
+    if (html.includes(`value="${prevVal}"`)) {
+        selectSejarah.value = prevVal;
+    } else if (html.includes(`value="${bulanAktif}"`)) {
+        selectSejarah.value = bulanAktif;
+    } else if (availableMonths.length > 0) {
+        selectSejarah.selectedIndex = selectSejarah.options.length - 1;
+    }
+
+    initCustomDropdown('select-bulan-sejarah');
+}
+
+function bukaQuickPayModal() {
+    document.getElementById('quick-pay-modal').classList.remove('hidden');
+    document.getElementById('quick-pay-modal').classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+}
+function tutupQuickPayModal() {
+    document.getElementById('quick-pay-modal').classList.add('hidden');
+    document.getElementById('quick-pay-modal').classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+    const akaunSection = document.getElementById('quick-pay-hutang-akaun-section');
+    if(akaunSection) { akaunSection.classList.add('hidden'); akaunSection.innerHTML = ""; }
+}
+
+function onQuickPaySelectChange() {
+    const selectEl = document.getElementById('quick-pay-select');
+    const val = selectEl.value;
+    const akaunSection = document.getElementById('quick-pay-hutang-akaun-section');
+    document.getElementById('quick-pay-amount').value = "";
+
+    if(val && val.startsWith('catHut_')) {
+        const kategori = val.split('_').slice(1).join('_');
+        renderQuickPayHutangAkaunList(kategori);
+        akaunSection.classList.remove('hidden');
+    } else {
+        akaunSection.classList.add('hidden');
+        akaunSection.innerHTML = "";
+    }
+}
+
+function renderQuickPayHutangAkaunList(kategori) {
+    const section = document.getElementById('quick-pay-hutang-akaun-section');
+    const data = masterDatabase.bulan[bulanAktif];
+
+    let html = `<label class="text-[9px] uppercase font-bold tracking-wider opacity-70 mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Pilih Akaun Hutang Dalam Kategori Ini</label>`;
+    html += `<select id="quick-pay-hutang-akaun-select" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs bg-transparent border shadow-sm" onchange="onQuickPayHutangAkaunChange()">`;
+    html += `<option value="" class="text-slate-900">-- Bayaran Am Kategori (Automatik) --</option>`;
+
+    let ada = false;
+    data.hutang.forEach(h => {
+        let kat = h.kategori || "Lain-lain";
+        if(kat === kategori && h.status === 'Aktif') {
+            let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+            if(baki > 0) {
+                ada = true;
+                html += `<option value="${h.id}" class="text-slate-900">${h.nama} [Baki: RM ${baki.toFixed(2)}]</option>`;
+            }
+        }
+    });
+    html += `</select>`;
+
+    if(!ada) {
+        html += `<p class="text-[10px] text-slate-500 mt-2">Tiada akaun aktif dalam kategori ini.</p>`;
+    }
+
+    section.innerHTML = html;
+    initCustomDropdown('quick-pay-hutang-akaun-select');
+}
+
+function onQuickPayHutangAkaunChange() {
+    const akaunSelectEl = document.getElementById('quick-pay-hutang-akaun-select');
+    const amountInput = document.getElementById('quick-pay-amount');
+    if(!akaunSelectEl) return;
+
+    const hutangId = akaunSelectEl.value;
+    if(!hutangId) { amountInput.value = ""; return; }
+
+    const data = masterDatabase.bulan[bulanAktif];
+    const target = data.hutang.find(h => h.id === parseInt(hutangId));
+    if(!target) return;
+    const baki = Math.max(0, target.jumlahAsal - target.sudahDibayar);
+    amountInput.value = baki.toFixed(2);
+}
+
+function bukaHistoryModal() {
+    janaSenaraiBulanSejarah();
+    kemaskiniSemuaPaparan();
+    document.getElementById('history-modal').classList.remove('hidden');
+    document.getElementById('history-modal').classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+}
+function tutupHistoryModal() {
+    document.getElementById('history-modal').classList.add('hidden');
+    document.getElementById('history-modal').classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+}
+
+function toggleKomitmenPaid(id) {
+    const index = masterDatabase.bulan[bulanAktif].komitmen.findIndex(i => i.id === id);
+    if(index !== -1) {
+        const item = masterDatabase.bulan[bulanAktif].komitmen[index];
+        item.paid = !item.paid;
+        
+        if(!masterDatabase.bulan[bulanAktif].bayaranHistory) masterDatabase.bulan[bulanAktif].bayaranHistory = [];
+        let kategoriTarget = item.kategori || item.icon;
+
+        if(item.paid) {
+            const t = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
+            masterDatabase.bulan[bulanAktif].bayaranHistory.push({
+                id: Date.now(), tipe: 'catKom', targetId: kategoriTarget, nama: `Kategori Komitmen: ${kategoriTarget}`, amaun: item.amaun, tarikh: t, itemId: item.id
+            });
+        } else {
+            masterDatabase.bulan[bulanAktif].bayaranHistory = masterDatabase.bulan[bulanAktif].bayaranHistory.filter(h => !(h.tipe === 'catKom' && h.itemId === item.id));
+        }
+
+        simpanKeLocalStorage();
+        kemaskiniSemuaPaparan();
+    }
+}
+
+function toggleHutangCatPaid(kategori) {
+    const data = masterDatabase.bulan[bulanAktif];
+    if(!data.hutangCatPaid) data.hutangCatPaid = {};
+    data.hutangCatPaid[kategori] = !data.hutangCatPaid[kategori];
+    
+    if(!data.bayaranHistory) data.bayaranHistory = [];
+    
+    if(data.hutangCatPaid[kategori]) {
+        let amt = 0;
+        if(!data.hutang) data.hutang = [];
+        data.hutang.forEach(h => {
+            if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kategori) {
+                amt += h.ansuran;
+                h.sudahDibayar += h.ansuran;
+                if(h.sudahDibayar > h.jumlahAsal) h.sudahDibayar = h.jumlahAsal;
+            }
+        });
+        const t = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
+        data.bayaranHistory.push({
+            id: Date.now(), tipe: 'catHutCheck', targetId: kategori, nama: `Ansuran Hutang: ${kategori}`, amaun: amt, tarikh: t
+        });
+    } else {
+        if(!data.hutang) data.hutang = [];
+        data.hutang.forEach(h => {
+            if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kategori) {
+                h.sudahDibayar -= h.ansuran;
+                if(h.sudahDibayar < 0) h.sudahDibayar = 0;
+            }
+        });
+        data.bayaranHistory = data.bayaranHistory.filter(h => !(h.tipe === 'catHutCheck' && h.targetId === kategori));
+    }
+    
+    simpanKeLocalStorage();
+    kemaskiniSemuaPaparan();
+}
+
+function prosesBayaranPantas() {
+    const selectEl = document.getElementById('quick-pay-select');
+    const targetValue = selectEl.value;
+    const amaunLog = parseFloat(document.getElementById('quick-pay-amount').value) || 0;
+
+    if(!targetValue) return paparToast("Pilihan Kosong", "Sila pilih kategori aliran terlebih dahulu.", "amaran");
+    if(amaunLog <= 0) return paparToast("Ralat Amaun", "Sila masukkan jumlah bayaran yang sah.", "amaran");
+
+    const parts = targetValue.split('_');
+    const jenis = parts[0];
+    const namaKategori = parts.slice(1).join('_');
+
+    const data = masterDatabase.bulan[bulanAktif];
+    let namaTarget = "";
+    let remaining = amaunLog;
+
+    if(jenis === 'catKom') {
+        data.komitmen.forEach(i => {
+            let kat = i.kategori || i.icon;
+            if(kat === namaKategori && !i.paid && remaining > 0) {
+                let payAmt = Math.min(i.amaun, remaining);
+                if(payAmt >= i.amaun) i.paid = true;
+                remaining -= payAmt;
+            }
+        });
+        namaTarget = `Kategori Komitmen: ${namaKategori}`;
+        paparToast("Bayaran Dikemaskini", `Komitmen kategori "${namaKategori}" dikemaskini.`, "sukses");
+    } else if(jenis === 'catHut') {
+        const akaunSelectEl = document.getElementById('quick-pay-hutang-akaun-select');
+        const hutangIdVal = akaunSelectEl ? akaunSelectEl.value : "";
+
+        if(hutangIdVal) {
+            const target = data.hutang.find(h => h.id === parseInt(hutangIdVal));
+            if(!target) {
+                paparToast("Ralat", "Akaun hutang tidak dijumpai.", "amaran");
+                return;
+            }
+
+            target.sudahDibayar = (parseFloat(target.sudahDibayar) || 0) + amaunLog;
+            namaTarget = `Hutang: ${target.nama}`;
+            paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki "${target.nama}".`, "sukses");
+        } else {
+            data.hutang.forEach(h => {
+                let kat = h.kategori || "Lain-lain";
+                if(kat === namaKategori && h.status === 'Aktif' && remaining > 0) {
+                    let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                    let payAmt = Math.min(baki, remaining);
+                    h.sudahDibayar += payAmt;
+                    remaining -= payAmt;
+                }
+            });
+            namaTarget = `Kategori Hutang: ${namaKategori}`;
+            paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki kategori "${namaKategori}".`, "sukses");
+        }
+    }
+
+    if(!data.bayaranHistory) data.bayaranHistory = [];
+    const tarikhHariIni = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
+    data.bayaranHistory.push({
+        id: Date.now(), tipe: jenis, targetId: namaKategori, nama: namaTarget, amaun: amaunLog, tarikh: tarikhHariIni
+    });
+
+    document.getElementById('quick-pay-amount').value = "";
+    tutupQuickPayModal();
+    simpanKeLocalStorage();
+    kemaskiniSemuaPaparan();
+}
+
+function editSejarah(idLog) {
+    const data = masterDatabase.bulan[bulanAktif];
+    const idxLog = data.bayaranHistory.findIndex(l => l.id === idLog);
+    if(idxLog === -1) return;
+
+    const logItem = data.bayaranHistory[idxLog];
+    const amaunBaruInput = prompt(`Kemaskini Amaun Bayaran Sejarah untuk "${logItem.nama}":`, logItem.amaun);
+    if(amaunBaruInput === null) return;
+    const amaunBaru = parseFloat(amaunBaruInput) || 0;
+    
+    if(logItem.amaun < 0) return paparToast("Dilarang", "Log pemulangan tidak boleh diedit, hanya dipadam.", "amaran");
+    if(amaunBaru < 0) return paparToast("Ralat Amaun", "Sila masukkan amaun baru yang sah.", "amaran");
+
+    const perbezaan = amaunBaru - logItem.amaun;
+
+    if(logItem.tipe === 'catHut') {
+        if (perbezaan > 0) {
+            let remaining = perbezaan;
+            for (let i = 0; i < data.hutang.length; i++) {
+                let h = data.hutang[i];
+                let kat = h.kategori || "Lain-lain";
+                if (kat === logItem.targetId && h.status === 'Aktif') {
+                    let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                    let payAmt = Math.min(baki, remaining);
+                    h.sudahDibayar += payAmt;
+                    remaining -= payAmt;
+                    if(remaining <= 0) break;
+                }
+            }
+        } else if (perbezaan < 0) {
+            let diffToRemove = Math.abs(perbezaan);
+            for (let i = 0; i < data.hutang.length; i++) {
+                let h = data.hutang[i];
+                let kat = h.kategori || "Lain-lain";
+                if (kat === logItem.targetId && h.sudahDibayar > 0) {
+                    let takeBack = Math.min(h.sudahDibayar, diffToRemove);
+                    h.sudahDibayar -= takeBack;
+                    diffToRemove -= takeBack;
+                    if (diffToRemove <= 0) break;
+                }
+            }
+        }
+    } else if (logItem.tipe === 'catKom' || logItem.tipe === 'catHutCheck') {
+        paparToast("Makluman", "Log diedit. Sila pastikan status semakan/ansuran di dalam senarai adalah tepat.", "info");
+    }
+
+    logItem.amaun = amaunBaru;
+    simpanKeLocalStorage();
+    kemaskiniSemuaPaparan();
+    paparToast("Sejarah Dikemaskini", "Jumlah transaksi log berjaya dikira semula.", "sukses");
+}
+
+function padamSejarah(idLog) {
+    const data = masterDatabase.bulan[bulanAktif];
+    const idxLog = data.bayaranHistory.findIndex(l => l.id === idLog);
+    if(idxLog === -1) return;
+
+    const logItem = data.bayaranHistory[idxLog];
+
+    if(logItem.tipe === 'catHut') {
+        if (logItem.amaun > 0) {
+            let diffToRemove = logItem.amaun;
+            for (let i = 0; i < data.hutang.length; i++) {
+                let h = data.hutang[i];
+                let kat = h.kategori || "Lain-lain";
+                if (kat === logItem.targetId && h.sudahDibayar > 0) {
+                    let takeBack = Math.min(h.sudahDibayar, diffToRemove);
+                    h.sudahDibayar -= takeBack;
+                    diffToRemove -= takeBack;
+                    if (diffToRemove <= 0) break;
+                }
+            }
+        } else if (logItem.amaun < 0) {
+            let diffToAdd = Math.abs(logItem.amaun);
+            for (let i = 0; i < data.hutang.length; i++) {
+                let h = data.hutang[i];
+                let kat = h.kategori || "Lain-lain";
+                if (kat === logItem.targetId && h.status === 'Aktif') {
+                    let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                    let toAdd = Math.min(baki, diffToAdd);
+                    h.sudahDibayar += toAdd;
+                    diffToAdd -= toAdd;
+                    if (diffToAdd <= 0) break;
+                }
+            }
+        }
+    } else if(logItem.tipe === 'catKom') {
+        if (logItem.itemId) {
+            const cIdx = data.komitmen.findIndex(c => c.id === logItem.itemId);
+            if(cIdx !== -1) data.komitmen[cIdx].paid = false;
+        } else {
+            data.komitmen.forEach(c => {
+                let kat = c.kategori || c.icon;
+                if (kat === logItem.targetId) c.paid = false;
+            });
+        }
+    } else if(logItem.tipe === 'catHutCheck') {
+        if(data.hutangCatPaid) data.hutangCatPaid[logItem.targetId] = false;
+        if(!data.hutang) data.hutang = [];
+        data.hutang.forEach(h => {
+            if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === logItem.targetId) {
+                h.sudahDibayar -= h.ansuran;
+                if(h.sudahDibayar < 0) h.sudahDibayar = 0;
+            }
+        });
+    }
+
+    data.bayaranHistory.splice(idxLog, 1);
+    simpanKeLocalStorage();
+    kemaskiniSemuaPaparan();
+    paparToast("Transaksi Dipadam", "Log bayaran dikeluarkan, baki dipulangkan asal.", "padam");
+}
+
 function isHutangSelesai(h) {
     let asal = parseFloat(h.jumlahAsal) || 0;
     let dibayar = parseFloat(h.sudahDibayar) || 0;
@@ -93,9 +462,10 @@ function kemaskiniSemuaPaparan() {
         if(isPaid) {
             hutangSudahBayar += amt;
         } else {
-            let remaining = Math.max(0, amt - quickPaid);
+            let normalizedQuickPay = Math.max(0, quickPaid);
+            let remaining = Math.max(0, amt - normalizedQuickPay);
             hutangBelumBayar += remaining;
-            hutangSudahBayar += Math.min(amt, quickPaid);
+            hutangSudahBayar += Math.min(amt, normalizedQuickPay);
         }
     }
 
@@ -166,6 +536,42 @@ function kemaskiniSemuaPaparan() {
         initCustomDropdown('quick-pay-select');
     }
 
+    const sejarahContainer = document.getElementById('sejarah-log-list');
+    const bulanTapisSejarah = document.getElementById('select-bulan-sejarah') ? document.getElementById('select-bulan-sejarah').value : bulanAktif;
+    
+    if(sejarahContainer) {
+        sejarahContainer.innerHTML = "";
+        let dbSejarahBulanTerpilih = masterDatabase.bulan[bulanTapisSejarah];
+        let senaraiLog = (dbSejarahBulanTerpilih && dbSejarahBulanTerpilih.bayaranHistory) ? dbSejarahBulanTerpilih.bayaranHistory : [];
+        
+        let totalAmaunSejarah = 0;
+
+        if(senaraiLog.length === 0) {
+            sejarahContainer.innerHTML = `<p class="text-[10px] text-slate-500 text-center py-4 bg-slate-500/5 rounded-xl border border-dashed italic">Tiada transaksi log bagi bulan ini.</p>`;
+        } else {
+            senaraiLog.forEach(log => {
+                totalAmaunSejarah += log.amaun;
+                let labelTipe = log.tipe === 'catHut' ? '💳 Hutang (Baki)' : (log.tipe === 'catHutCheck' ? '💳 Hutang (Ansuran)' : '📋 Komitmen');
+                sejarahContainer.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-500/10 dark:bg-white/5 border border-slate-300 dark:border-transparent p-2.5 rounded-xl text-[10px] hover:bg-slate-500/20 transition-colors">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-900 dark:text-slate-100">${log.nama}</span>
+                            <span class="text-[9px] opacity-60 mt-0.5"><i class="fa-solid fa-calendar-day text-[8px]"></i> ${log.tarikh} | ${labelTipe}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold ${log.amaun < 0 ? 'text-rose-500' : 'text-indigo-600 dark:text-indigo-400'}">RM ${log.amaun.toFixed(2)}</span>
+                            <button onclick="editSejarah(${log.id})" class="text-indigo-500 bg-indigo-500/10 w-6 h-6 flex items-center justify-center rounded hover:bg-indigo-500/20"><i class="fa-solid fa-pen text-[9px]"></i></button>
+                            <button onclick="padamSejarah(${log.id})" class="text-rose-500 bg-rose-500/10 w-6 h-6 flex items-center justify-center rounded hover:bg-rose-500/20"><i class="fa-solid fa-trash text-[9px]"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        if(document.getElementById('display-total-sejarah')) {
+            document.getElementById('display-total-sejarah').innerText = `RM ${totalAmaunSejarah.toFixed(2)}`;
+        }
+    }
+
     const checklistContainer = document.getElementById('dashboard-checklist-container');
     let itemSelesai = 0;
     let totalItemChecklist = data.komitmen.length + Object.keys(ansuranKategori).length;
@@ -194,7 +600,7 @@ function kemaskiniSemuaPaparan() {
             let targetAnsuranPenuh = ansuranKategori[kat];
             let quickPaidAmount = quickPayHutang[kat] || 0;
             
-            let amtToShow = Math.max(0, targetAnsuranPenuh - quickPaidAmount);
+            let amtToShow = Math.max(0, targetAnsuranPenuh - Math.max(0, quickPaidAmount));
             let isCompleted = isPaid || amtToShow <= 0;
 
             if (isCompleted) itemSelesai++;
@@ -234,12 +640,14 @@ function kemaskiniSemuaPaparan() {
     }
 
     const hContainer = document.getElementById('hutang-list-container');
+    const filterEl = document.getElementById('filter-hutang-kategori');
+    const filterKategori = filterEl ? (filterEl.value || 'semua') : 'semua';
     const sortMode = document.getElementById('sort-hutang-mode') ? document.getElementById('sort-hutang-mode').value : 'default';
-    const filterKategori = document.getElementById('filter-hutang-kategori') ? document.getElementById('filter-hutang-kategori').value : 'semua';
     
     if(hContainer) {
         hContainer.innerHTML = "";
         let hutangDiproses = [...data.hutang];
+        
         if (sortMode === 'default') {
             hutangDiproses.sort((a, b) => {
                 let tA = parseInt(a.tarikhBayar) || 99;
@@ -249,7 +657,7 @@ function kemaskiniSemuaPaparan() {
         }
 
         if (filterKategori !== 'semua') {
-            hutangDiproses = hutangDiproses.filter(h => h.kategori === filterKategori);
+            hutangDiproses = hutangDiproses.filter(h => (h.kategori || "Lain-lain") === filterKategori);
         }
 
         let hutangAktifSenarai = hutangDiproses.filter(h => !isHutangSelesai(h));
@@ -260,8 +668,9 @@ function kemaskiniSemuaPaparan() {
         } else if (sortMode === 'kategori') {
             const kelompokHutang = {};
             hutangAktifSenarai.forEach(h => {
-                if (!kelompokHutang[h.kategori]) kelompokHutang[h.kategori] = [];
-                kelompokHutang[h.kategori].push(h);
+                let safeKat = h.kategori || "Lain-lain";
+                if (!kelompokHutang[safeKat]) kelompokHutang[safeKat] = [];
+                kelompokHutang[safeKat].push(h);
             });
 
             Object.keys(kelompokHutang).sort().forEach(kat => {
@@ -309,41 +718,6 @@ function kemaskiniSemuaPaparan() {
         }
     }
 
-    const sejarahContainer = document.getElementById('sejarah-log-list');
-    const bulanTapisSejarah = document.getElementById('select-bulan-sejarah') ? document.getElementById('select-bulan-sejarah').value : bulanAktif;
-    
-    if(sejarahContainer) {
-        sejarahContainer.innerHTML = "";
-        let dbSejarahBulanTerpilih = masterDatabase.bulan[bulanTapisSejarah];
-        let senaraiLog = (dbSejarahBulanTerpilih && dbSejarahBulanTerpilih.bayaranHistory) ? dbSejarahBulanTerpilih.bayaranHistory : [];
-        let totalAmaunSejarah = 0;
-
-        if(senaraiLog.length === 0) {
-            sejarahContainer.innerHTML = `<p class="text-[10px] text-slate-500 text-center py-4 bg-slate-500/5 rounded-xl border border-dashed italic">Tiada transaksi log bagi bulan ini.</p>`;
-        } else {
-            senaraiLog.forEach(log => {
-                totalAmaunSejarah += log.amaun;
-                let labelTipe = log.tipe === 'catHut' ? '💳 Hutang (Baki)' : (log.tipe === 'catHutCheck' ? '💳 Hutang (Ansuran)' : '📋 Komitmen');
-                sejarahContainer.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-500/10 dark:bg-white/5 border border-slate-300 dark:border-transparent p-2.5 rounded-xl text-[10px] hover:bg-slate-500/20 transition-colors">
-                        <div class="flex flex-col">
-                            <span class="font-bold text-slate-900 dark:text-slate-100">${log.nama}</span>
-                            <span class="text-[9px] opacity-60 mt-0.5"><i class="fa-solid fa-calendar-day text-[8px]"></i> ${log.tarikh} | ${labelTipe}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-extrabold ${log.amaun < 0 ? 'text-rose-500' : 'text-indigo-600 dark:text-indigo-400'}">RM ${log.amaun.toFixed(2)}</span>
-                            <button onclick="editSejarah(${log.id})" class="text-indigo-500 bg-indigo-500/10 w-6 h-6 flex items-center justify-center rounded hover:bg-indigo-500/20"><i class="fa-solid fa-pen text-[9px]"></i></button>
-                            <button onclick="padamSejarah(${log.id})" class="text-rose-500 bg-rose-500/10 w-6 h-6 flex items-center justify-center rounded hover:bg-rose-500/20"><i class="fa-solid fa-trash text-[9px]"></i></button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-        if(document.getElementById('display-total-sejarah')) {
-            document.getElementById('display-total-sejarah').innerText = `RM ${totalAmaunSejarah.toFixed(2)}`;
-        }
-    }
-
     let dsr = bakiGajiBersih > 0 ? (totalKomitmen + totalAnsuranHutang) / bakiGajiBersih * 100 : 0;
     let skor = Math.max(0, 100 - dsr);
     const scoreBar = document.getElementById('health-score-bar');
@@ -359,307 +733,4 @@ function kemaskiniSemuaPaparan() {
         else if(skor < 70) { badge.innerText = "Sederhana"; badge.className = "text-[9px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full"; }
         else { badge.innerText = "Sangat Baik"; badge.className = "text-[9px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full"; }
     }
-}
-
-function toggleKomitmenPaid(id) {
-    const index = masterDatabase.bulan[bulanAktif].komitmen.findIndex(i => i.id === id);
-    if(index !== -1) {
-        const item = masterDatabase.bulan[bulanAktif].komitmen[index];
-        item.paid = !item.paid;
-        if(!masterDatabase.bulan[bulanAktif].bayaranHistory) masterDatabase.bulan[bulanAktif].bayaranHistory = [];
-        let kategoriTarget = item.kategori || item.icon;
-        if(item.paid) {
-            const t = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
-            masterDatabase.bulan[bulanAktif].bayaranHistory.push({ id: Date.now(), tipe: 'catKom', targetId: kategoriTarget, nama: `Kategori Komitmen: ${kategoriTarget}`, amaun: item.amaun, tarikh: t, itemId: item.id });
-        } else {
-            masterDatabase.bulan[bulanAktif].bayaranHistory = masterDatabase.bulan[bulanAktif].bayaranHistory.filter(h => !(h.tipe === 'catKom' && h.itemId === item.id));
-        }
-        simpanKeLocalStorage();
-        kemaskiniSemuaPaparan();
-    }
-}
-
-function toggleHutangCatPaid(kategori) {
-    const data = masterDatabase.bulan[bulanAktif];
-    if(!data.hutangCatPaid) data.hutangCatPaid = {};
-    data.hutangCatPaid[kategori] = !data.hutangCatPaid[kategori];
-    if(!data.bayaranHistory) data.bayaranHistory = [];
-    
-    if(data.hutangCatPaid[kategori]) {
-        let amt = 0;
-        if(!data.hutang) data.hutang = [];
-        data.hutang.forEach(h => {
-            if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kategori) {
-                amt += h.ansuran;
-                h.sudahDibayar += h.ansuran;
-                if(h.sudahDibayar > h.jumlahAsal) h.sudahDibayar = h.jumlahAsal;
-            }
-        });
-        const t = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
-        data.bayaranHistory.push({ id: Date.now(), tipe: 'catHutCheck', targetId: kategori, nama: `Ansuran Hutang: ${kategori}`, amaun: amt, tarikh: t });
-    } else {
-        if(!data.hutang) data.hutang = [];
-        data.hutang.forEach(h => {
-            if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kategori) {
-                h.sudahDibayar -= h.ansuran;
-                if(h.sudahDibayar < 0) h.sudahDibayar = 0;
-            }
-        });
-        data.bayaranHistory = data.bayaranHistory.filter(h => !(h.tipe === 'catHutCheck' && h.targetId === kategori));
-    }
-    simpanKeLocalStorage();
-    kemaskiniSemuaPaparan();
-}
-
-function bukaQuickPayModal() {
-    document.getElementById('quick-pay-modal').classList.remove('hidden');
-    document.getElementById('quick-pay-modal').classList.add('flex');
-    document.body.classList.add('overflow-hidden');
-}
-function tutupQuickPayModal() {
-    document.getElementById('quick-pay-modal').classList.add('hidden');
-    document.getElementById('quick-pay-modal').classList.remove('flex');
-    document.body.classList.remove('overflow-hidden');
-    const akaunSection = document.getElementById('quick-pay-hutang-akaun-section');
-    if(akaunSection) { akaunSection.classList.add('hidden'); akaunSection.innerHTML = ""; }
-}
-
-function onQuickPaySelectChange() {
-    const val = document.getElementById('quick-pay-select').value;
-    const akaunSection = document.getElementById('quick-pay-hutang-akaun-section');
-    document.getElementById('quick-pay-amount').value = "";
-    if(val && val.startsWith('catHut_')) {
-        renderQuickPayHutangAkaunList(val.split('_').slice(1).join('_'));
-        akaunSection.classList.remove('hidden');
-    } else {
-        akaunSection.classList.add('hidden');
-        akaunSection.innerHTML = "";
-    }
-}
-
-function renderQuickPayHutangAkaunList(kategori) {
-    const data = masterDatabase.bulan[bulanAktif];
-    let html = `<label class="text-[9px] uppercase font-bold tracking-wider opacity-70 mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-file-invoice-dollar"></i> Pilih Akaun Hutang Dalam Kategori Ini</label>
-                <select id="quick-pay-hutang-akaun-select" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs bg-transparent border shadow-sm" onchange="onQuickPayHutangAkaunChange()">
-                <option value="" class="text-slate-900">-- Bayaran Am Kategori (Automatik) --</option>`;
-    let ada = false;
-    data.hutang.forEach(h => {
-        if((h.kategori || "Lain-lain") === kategori && h.status === 'Aktif') {
-            let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
-            if(baki > 0) {
-                ada = true;
-                html += `<option value="${h.id}" class="text-slate-900">${h.nama} [Baki: RM ${baki.toFixed(2)}]</option>`;
-            }
-        }
-    });
-    html += `</select>`;
-    if(!ada) html += `<p class="text-[10px] text-slate-500 mt-2">Tiada akaun aktif dalam kategori ini.</p>`;
-    document.getElementById('quick-pay-hutang-akaun-section').innerHTML = html;
-    initCustomDropdown('quick-pay-hutang-akaun-select');
-}
-
-function onQuickPayHutangAkaunChange() {
-    const hutangId = document.getElementById('quick-pay-hutang-akaun-select').value;
-    if(!hutangId) { document.getElementById('quick-pay-amount').value = ""; return; }
-    const target = masterDatabase.bulan[bulanAktif].hutang.find(h => h.id === parseInt(hutangId));
-    if(target) document.getElementById('quick-pay-amount').value = Math.max(0, target.jumlahAsal - target.sudahDibayar).toFixed(2);
-}
-
-function prosesBayaranPantas() {
-    const targetValue = document.getElementById('quick-pay-select').value;
-    const amaunLog = parseFloat(document.getElementById('quick-pay-amount').value) || 0;
-    if(!targetValue) return paparToast("Pilihan Kosong", "Sila pilih kategori aliran terlebih dahulu.", "amaran");
-    if(amaunLog <= 0) return paparToast("Ralat Amaun", "Sila masukkan jumlah bayaran yang sah.", "amaran");
-
-    const parts = targetValue.split('_');
-    const jenis = parts[0];
-    const namaKategori = parts.slice(1).join('_');
-    const data = masterDatabase.bulan[bulanAktif];
-    let namaTarget = "";
-    let remaining = amaunLog;
-
-    if(jenis === 'catKom') {
-        data.komitmen.forEach(i => {
-            if((i.kategori || i.icon) === namaKategori && !i.paid && remaining > 0) {
-                let payAmt = Math.min(i.amaun, remaining);
-                if(payAmt >= i.amaun) i.paid = true;
-                remaining -= payAmt;
-            }
-        });
-        namaTarget = `Kategori Komitmen: ${namaKategori}`;
-        paparToast("Bayaran Dikemaskini", `Komitmen kategori "${namaKategori}" dikemaskini.`, "sukses");
-    } else if(jenis === 'catHut') {
-        const hutangIdVal = document.getElementById('quick-pay-hutang-akaun-select') ? document.getElementById('quick-pay-hutang-akaun-select').value : "";
-        if(hutangIdVal) {
-            const target = data.hutang.find(h => h.id === parseInt(hutangIdVal));
-            if(!target) return paparToast("Ralat", "Akaun hutang tidak dijumpai.", "amaran");
-            target.sudahDibayar = (parseFloat(target.sudahDibayar) || 0) + amaunLog;
-            namaTarget = `Hutang: ${target.nama}`;
-            paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki "${target.nama}".`, "sukses");
-        } else {
-            data.hutang.forEach(h => {
-                if((h.kategori || "Lain-lain") === namaKategori && h.status === 'Aktif' && remaining > 0) {
-                    let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
-                    let payAmt = Math.min(baki, remaining);
-                    h.sudahDibayar += payAmt;
-                    remaining -= payAmt;
-                }
-            });
-            namaTarget = `Kategori Hutang: ${namaKategori}`;
-            paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki kategori "${namaKategori}".`, "sukses");
-        }
-    }
-
-    if(!data.bayaranHistory) data.bayaranHistory = [];
-    const t = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
-    data.bayaranHistory.push({ id: Date.now(), tipe: jenis, targetId: namaKategori, nama: namaTarget, amaun: amaunLog, tarikh: t });
-
-    document.getElementById('quick-pay-amount').value = "";
-    tutupQuickPayModal();
-    simpanKeLocalStorage();
-    kemaskiniSemuaPaparan();
-}
-
-function bukaHistoryModal() {
-    janaSenaraiBulanSejarah();
-    kemaskiniSemuaPaparan();
-    document.getElementById('history-modal').classList.remove('hidden');
-    document.getElementById('history-modal').classList.add('flex');
-    document.body.classList.add('overflow-hidden');
-}
-function tutupHistoryModal() {
-    document.getElementById('history-modal').classList.add('hidden');
-    document.getElementById('history-modal').classList.remove('flex');
-    document.body.classList.remove('overflow-hidden');
-}
-
-function janaSenaraiBulanSejarah() {
-    const selectSejarah = document.getElementById('select-bulan-sejarah');
-    if(!selectSejarah) return;
-    let html = '';
-    const namaBulan = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
-    let adaRekod = false;
-    let availableMonths = Object.keys(masterDatabase.bulan).sort();
-    availableMonths.forEach(b => {
-        let data = masterDatabase.bulan[b];
-        if (data && data.bayaranHistory && data.bayaranHistory.length > 0) {
-            let [y, m] = b.split('-');
-            html += `<option value="${b}" class="text-slate-900">${namaBulan[parseInt(m) - 1]} ${y}</option>`;
-            adaRekod = true;
-        }
-    });
-    if (!adaRekod) {
-        let [y, m] = bulanAktif.split('-');
-        html += `<option value="${bulanAktif}" class="text-slate-900">${namaBulan[parseInt(m) - 1]} ${y}</option>`;
-    }
-    let prevVal = selectSejarah.value;
-    selectSejarah.innerHTML = html;
-    if (html.includes(`value="${prevVal}"`)) selectSejarah.value = prevVal;
-    else if (html.includes(`value="${bulanAktif}"`)) selectSejarah.value = bulanAktif;
-    else if (availableMonths.length > 0) selectSejarah.selectedIndex = selectSejarah.options.length - 1;
-    initCustomDropdown('select-bulan-sejarah');
-}
-
-function editSejarah(idLog) {
-    const data = masterDatabase.bulan[bulanAktif];
-    const idxLog = data.bayaranHistory.findIndex(l => l.id === idLog);
-    if(idxLog === -1) return;
-    const logItem = data.bayaranHistory[idxLog];
-    const amaunBaruInput = prompt(`Kemaskini Amaun Bayaran Sejarah untuk "${logItem.nama}":`, logItem.amaun);
-    if(amaunBaruInput === null) return;
-    const amaunBaru = parseFloat(amaunBaruInput) || 0;
-    
-    // We cannot reliably change negative logs via prompt.
-    if(logItem.amaun < 0) return paparToast("Dilarang", "Log pemulangan tidak boleh diedit, hanya dipadam.", "amaran");
-    if(amaunBaru < 0) return paparToast("Ralat Amaun", "Sila masukkan amaun baru yang sah.", "amaran");
-    
-    const perbezaan = amaunBaru - logItem.amaun;
-
-    if(logItem.tipe === 'catHut') {
-        if (perbezaan > 0) {
-            let remaining = perbezaan;
-            for (let i = 0; i < data.hutang.length; i++) {
-                let h = data.hutang[i];
-                if ((h.kategori || "Lain-lain") === logItem.targetId && h.status === 'Aktif') {
-                    let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
-                    let payAmt = Math.min(baki, remaining);
-                    h.sudahDibayar += payAmt;
-                    remaining -= payAmt;
-                    if(remaining <= 0) break;
-                }
-            }
-        } else if (perbezaan < 0) {
-            let diffToRemove = Math.abs(perbezaan);
-            for (let i = 0; i < data.hutang.length; i++) {
-                let h = data.hutang[i];
-                if ((h.kategori || "Lain-lain") === logItem.targetId && h.sudahDibayar > 0) {
-                    let takeBack = Math.min(h.sudahDibayar, diffToRemove);
-                    h.sudahDibayar -= takeBack;
-                    diffToRemove -= takeBack;
-                    if (diffToRemove <= 0) break;
-                }
-            }
-        }
-    } else if (logItem.tipe === 'catKom' || logItem.tipe === 'catHutCheck') {
-        paparToast("Makluman", "Log diedit. Sila pastikan status semakan/ansuran di dalam senarai adalah tepat.", "info");
-    }
-    logItem.amaun = amaunBaru;
-    simpanKeLocalStorage();
-    kemaskiniSemuaPaparan();
-    paparToast("Sejarah Dikemaskini", "Jumlah transaksi log berjaya dikira semula.", "sukses");
-}
-
-function padamSejarah(idLog) {
-    const data = masterDatabase.bulan[bulanAktif];
-    const idxLog = data.bayaranHistory.findIndex(l => l.id === idLog);
-    if(idxLog === -1) return;
-    const logItem = data.bayaranHistory[idxLog];
-
-    if(logItem.tipe === 'catHut') {
-        if (logItem.amaun > 0) {
-            let diffToRemove = logItem.amaun;
-            for (let i = 0; i < data.hutang.length; i++) {
-                let h = data.hutang[i];
-                if ((h.kategori || "Lain-lain") === logItem.targetId && h.sudahDibayar > 0) {
-                    let takeBack = Math.min(h.sudahDibayar, diffToRemove);
-                    h.sudahDibayar -= takeBack;
-                    diffToRemove -= takeBack;
-                    if (diffToRemove <= 0) break;
-                }
-            }
-        } else if (logItem.amaun < 0) {
-            let diffToAdd = Math.abs(logItem.amaun);
-            for (let i = 0; i < data.hutang.length; i++) {
-                let h = data.hutang[i];
-                if ((h.kategori || "Lain-lain") === logItem.targetId && h.status === 'Aktif') {
-                    let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
-                    let toAdd = Math.min(baki, diffToAdd);
-                    h.sudahDibayar += toAdd;
-                    diffToAdd -= toAdd;
-                    if (diffToAdd <= 0) break;
-                }
-            }
-        }
-    } else if(logItem.tipe === 'catKom') {
-        if (logItem.itemId) {
-            const cIdx = data.komitmen.findIndex(c => c.id === logItem.itemId);
-            if(cIdx !== -1) data.komitmen[cIdx].paid = false;
-        } else {
-            data.komitmen.forEach(c => { if ((c.kategori || c.icon) === logItem.targetId) c.paid = false; });
-        }
-    } else if(logItem.tipe === 'catHutCheck') {
-        if(data.hutangCatPaid) data.hutangCatPaid[logItem.targetId] = false;
-        if(!data.hutang) data.hutang = [];
-        data.hutang.forEach(h => {
-            if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === logItem.targetId) {
-                h.sudahDibayar -= h.ansuran;
-                if(h.sudahDibayar < 0) h.sudahDibayar = 0;
-            }
-        });
-    }
-
-    data.bayaranHistory.splice(idxLog, 1);
-    simpanKeLocalStorage();
-    kemaskiniSemuaPaparan();
-    paparToast("Transaksi Dipadam", "Log bayaran dikeluarkan, baki dipulangkan asal.", "padam");
 }

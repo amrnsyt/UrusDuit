@@ -1,7 +1,12 @@
+// ============================================================
+// UrusDuit — TETAPAN (Settings) — Backup/Restore, Report Templates
+// ============================================================
+
 function eksportData() {
     const dataStr = JSON.stringify(masterDatabase, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
+    
     const now = new Date();
     const yy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -14,6 +19,7 @@ function eksportData() {
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", url);
     downloadAnchorNode.setAttribute("download", "UrusDuit/Backup/" + fileName);
+    
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     document.body.removeChild(downloadAnchorNode);
@@ -67,8 +73,12 @@ function simpanTemplateLaporan() {
     let templateData = { tajuk: tajuk, komitmenIds: [], hutangGroups: [] };
 
     checkedBoxes.forEach(box => {
-        if(box.value.startsWith('kom_')) templateData.komitmenIds.push(box.value);
-        else if(box.value.startsWith('hutgrp_')) templateData.hutangGroups.push(box.value.split('_')[1]);
+        if(box.value.startsWith('kom_')) {
+            templateData.komitmenIds.push(box.value);
+        } else if(box.value.startsWith('hutgrp_')) {
+            let kat = box.value.split('_')[1];
+            templateData.hutangGroups.push(kat);
+        }
     });
 
     if(!masterDatabase.laporanTemplates) masterDatabase.laporanTemplates = {};
@@ -78,6 +88,7 @@ function simpanTemplateLaporan() {
     muatSenaraiTemplateLaporan();
     document.getElementById('select-laporan-template').value = tajuk;
     syncCustomDropdown('select-laporan-template');
+    
     paparToast("Berjaya", "Template laporan anda telah disimpan.", "sukses");
 }
 
@@ -114,6 +125,8 @@ function padamTemplateLaporan() {
     }
 }
 
+let bulanLaporanSemasa = "";
+
 function tentukanBulanLaporan() {
     const now = new Date();
     return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
@@ -148,6 +161,7 @@ function bukaLaporanBulanan() {
     });
 
     if(!data.hutang) data.hutang = [];
+    
     if(!data.hutangCatPaid) data.hutangCatPaid = {};
 
     const groupedHutang = {};
@@ -155,7 +169,9 @@ function bukaLaporanBulanan() {
         let kat = h.kategori || "Lain-lain";
         let sudahSetelBulanIni = h.isMonthlyPay !== false && !!data.hutangCatPaid[kat];
         if (isHutangSelesai(h) && !sudahSetelBulanIni) return;
-        if(!groupedHutang[kat]) groupedHutang[kat] = { totalBaki: 0, monthlyAnsuranSum: 0, hasMonthly: false, hasAdhoc: false, adhocLogAmount: 0 };
+        if(!groupedHutang[kat]) {
+            groupedHutang[kat] = { totalBaki: 0, monthlyAnsuranSum: 0, hasMonthly: false, hasAdhoc: false, adhocLogAmount: 0 };
+        }
         groupedHutang[kat].totalBaki += Math.max(0, h.jumlahAsal - h.sudahDibayar);
         if (h.isMonthlyPay !== false) {
             groupedHutang[kat].monthlyAnsuranSum += h.ansuran;
@@ -217,7 +233,11 @@ function janaTeksLaporan() {
     
     let total = 0;
     const checkedBoxes = document.querySelectorAll('#laporan-modal input[type="checkbox"]:checked');
-    if(checkedBoxes.length === 0) return paparToast("Tiada Pilihan", "Sila pilih sekurang-kurangnya satu item untuk dijana.", "amaran");
+    
+    if(checkedBoxes.length === 0) {
+        paparToast("Tiada Pilihan", "Sila pilih sekurang-kurangnya satu item untuk dijana.", "amaran");
+        return;
+    }
 
     let hasKomitmen = false;
     let hasHutang = false;
@@ -235,13 +255,17 @@ function janaTeksLaporan() {
                 hasKomitmen = true;
             }
         } else if(val.startsWith('hutgrp_')) {
-            const kat = val.split('_')[1];
+            const parts = val.split('_');
+            const kat = parts[1];
+
             let itemsInKat = data.hutang.filter(x => (x.kategori || "Lain-lain") === kat && (!isHutangSelesai(x) || (x.isMonthlyPay !== false && data.hutangCatPaid && data.hutangCatPaid[kat])));
             if(itemsInKat.length > 0) {
                 let adhocItems = itemsInKat.filter(x => x.isMonthlyPay === false);
                 let adhocLogTotal = 0;
                 if (data.bayaranHistory) {
-                    data.bayaranHistory.forEach(log => { if (log.tipe === 'catHut' && log.targetId === kat) adhocLogTotal += log.amaun; });
+                    data.bayaranHistory.forEach(log => {
+                        if (log.tipe === 'catHut' && log.targetId === kat) adhocLogTotal += log.amaun;
+                    });
                 }
                 let adhocPerItem = adhocItems.length > 0 ? (adhocLogTotal / adhocItems.length) : 0;
                 let katTotal = 0;
@@ -260,7 +284,9 @@ function janaTeksLaporan() {
 
     if(hasKomitmen) teks += `*📝 KOMITMEN:*\n${komitmenText}\n`;
     if(hasHutang) teks += `*💳 HUTANG / ANSURAN:*\n${hutangText}\n`;
-    teks += `===================\n*JUMLAH KESELURUHAN: RM ${total.toFixed(2)}*\n===================`;
+    teks += `===================\n`;
+    teks += `*JUMLAH KESELURUHAN: RM ${total.toFixed(2)}*\n`;
+    teks += `===================`;
 
     const outputEl = document.getElementById('laporan-output-text');
     outputEl.value = teks;

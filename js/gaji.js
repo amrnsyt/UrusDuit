@@ -1,3 +1,8 @@
+// ============================================================
+// UrusDuit — GAJI (Salary) — Calculator, SOCSO Mode
+// ============================================================
+
+// --- MODAL CONTROLS ---
 function bukaGajiModal() {
     document.getElementById('gaji-form-modal').classList.remove('hidden');
     document.getElementById('gaji-form-modal').classList.add('flex');

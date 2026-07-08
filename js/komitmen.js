@@ -1,3 +1,7 @@
+// ============================================================
+// UrusDuit — KOMITMEN (Commitments) — CRUD, Categories
+// ============================================================
+
 function bukaKomitmenModal() {
     document.getElementById('komitmen-form-modal').classList.remove('hidden');
     document.getElementById('komitmen-form-modal').classList.add('flex');
@@ -7,6 +11,71 @@ function tutupKomitmenModal() {
     document.getElementById('komitmen-form-modal').classList.add('hidden');
     document.getElementById('komitmen-form-modal').classList.remove('flex');
     document.body.classList.remove('overflow-hidden');
+}
+
+function padamKomitmen(id) {
+    masterDatabase.bulan[bulanAktif].komitmen = masterDatabase.bulan[bulanAktif].komitmen.filter(i => i.id !== id);
+    simpanKeLocalStorage();
+    kemaskiniSemuaPaparan();
+    paparToast("Item Dipadam", "Komitmen telah dikeluarkan daripada senarai.", "padam");
+}
+
+function mohonPadamKomitmen(id, namaItem) {
+    bukaModal("Padam Komitmen?", `Keluarkan "${namaItem}" dari memori bulan ini?`, "fa-trash-can", "bg-rose-500/20", "text-rose-500", "bg-rose-600 hover:bg-rose-700", "fa-trash", "Padam", () => { padamKomitmen(id); });
+}
+
+function editAmaunKomitmen(id) {
+    bukaEditAmaunModal(id);
+}
+
+function bukaEditAmaunModal(id) {
+    const data = masterDatabase.bulan[bulanAktif];
+    const item = data.komitmen.find(k => k.id === id);
+    if(!item) return;
+
+    idKomitmenSedangDiedit = id;
+    document.getElementById('edit-amaun-komitmen-nama').innerText = item.nama;
+    document.getElementById('edit-amaun-komitmen-icon').className = `fa-solid ${item.icon || 'fa-pen-to-square'}`;
+    const inputEl = document.getElementById('input-edit-amaun-komitmen');
+    inputEl.value = item.amaun.toFixed(2);
+
+    const modal = document.getElementById('edit-amaun-komitmen-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => { inputEl.focus(); inputEl.select(); }, 150);
+}
+
+function tutupEditAmaunModal() {
+    const modal = document.getElementById('edit-amaun-komitmen-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    idKomitmenSedangDiedit = null;
+}
+
+function labKomitmenAmaun(delta) {
+    const inputEl = document.getElementById('input-edit-amaun-komitmen');
+    const semasa = parseFloat(inputEl.value) || 0;
+    const baru = Math.max(0, semasa + delta);
+    inputEl.value = baru.toFixed(2);
+}
+
+function simpanEditAmaunKomitmen() {
+    if(idKomitmenSedangDiedit === null) return;
+    const data = masterDatabase.bulan[bulanAktif];
+    const item = data.komitmen.find(k => k.id === idKomitmenSedangDiedit);
+    if(!item) return;
+
+    const amaunBaru = parseFloat(document.getElementById('input-edit-amaun-komitmen').value);
+    if(isNaN(amaunBaru) || amaunBaru < 0) {
+        paparToast("Ralat Amaun", "Sila masukkan amaun yang sah.", "amaran");
+        return;
+    }
+
+    item.amaun = amaunBaru;
+    simpanKeLocalStorage();
+    kemaskiniSemuaPaparan();
+    tutupEditAmaunModal();
+    paparToast("Berjaya Dikemaskini", `Amaun "${item.nama}" telah dikemaskini kepada RM ${amaunBaru.toFixed(2)}.`, "sukses");
 }
 
 function tambahKategoriCustom() {
@@ -54,56 +123,4 @@ function tambahKomitmen() {
     paparToast("Komitmen Ditambah", `Item "${nama}" berjaya didaftarkan.`, "sukses");
     document.getElementById('input-nama-komitmen').value = "";
     document.getElementById('input-amaun-komitmen').value = "";
-}
-
-function padamKomitmen(id) {
-    masterDatabase.bulan[bulanAktif].komitmen = masterDatabase.bulan[bulanAktif].komitmen.filter(i => i.id !== id);
-    simpanKeLocalStorage();
-    kemaskiniSemuaPaparan();
-    paparToast("Item Dipadam", "Komitmen telah dikeluarkan daripada senarai.", "padam");
-}
-
-function mohonPadamKomitmen(id, namaItem) {
-    bukaModal("Padam Komitmen?", `Keluarkan "${namaItem}" dari memori bulan ini?`, "fa-trash-can", "bg-rose-500/20", "text-rose-500", "bg-rose-600 hover:bg-rose-700", "fa-trash", "Padam", () => { padamKomitmen(id); });
-}
-
-function editAmaunKomitmen(id) { bukaEditAmaunModal(id); }
-
-function bukaEditAmaunModal(id) {
-    const item = masterDatabase.bulan[bulanAktif].komitmen.find(k => k.id === id);
-    if(!item) return;
-    idKomitmenSedangDiedit = id;
-    document.getElementById('edit-amaun-komitmen-nama').innerText = item.nama;
-    document.getElementById('edit-amaun-komitmen-icon').className = `fa-solid ${item.icon || 'fa-pen-to-square'}`;
-    const inputEl = document.getElementById('input-edit-amaun-komitmen');
-    inputEl.value = item.amaun.toFixed(2);
-    const modal = document.getElementById('edit-amaun-komitmen-modal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => { inputEl.focus(); inputEl.select(); }, 150);
-}
-
-function tutupEditAmaunModal() {
-    document.getElementById('edit-amaun-komitmen-modal').classList.add('hidden');
-    document.getElementById('edit-amaun-komitmen-modal').classList.remove('flex');
-    idKomitmenSedangDiedit = null;
-}
-
-function labKomitmenAmaun(delta) {
-    const inputEl = document.getElementById('input-edit-amaun-komitmen');
-    const semasa = parseFloat(inputEl.value) || 0;
-    inputEl.value = Math.max(0, semasa + delta).toFixed(2);
-}
-
-function simpanEditAmaunKomitmen() {
-    if(idKomitmenSedangDiedit === null) return;
-    const item = masterDatabase.bulan[bulanAktif].komitmen.find(k => k.id === idKomitmenSedangDiedit);
-    if(!item) return;
-    const amaunBaru = parseFloat(document.getElementById('input-edit-amaun-komitmen').value);
-    if(isNaN(amaunBaru) || amaunBaru < 0) return paparToast("Ralat Amaun", "Sila masukkan amaun yang sah.", "amaran");
-    item.amaun = amaunBaru;
-    simpanKeLocalStorage();
-    kemaskiniSemuaPaparan();
-    tutupEditAmaunModal();
-    paparToast("Berjaya Dikemaskini", `Amaun "${item.nama}" telah dikemaskini kepada RM ${amaunBaru.toFixed(2)}.`, "sukses");
 }
