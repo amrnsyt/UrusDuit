@@ -5,26 +5,214 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>UrusDuit Elite Pro - High Contrast & History Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style type="text/tailwindcss">
-        @custom-variant dark (&:where(.dark, .dark *));
-    </style>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0f172a">
 
-    <!-- CSS MODULE (Cache busted with ?v=8.3) -->
-    <link rel="stylesheet" href="css/styles.css?v=8.3">
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) registration.update();
-            });
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            position: relative;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.4s ease, color 0.4s ease;
         }
-    </script>
+        
+        /* THEME BASE CONFIGURATION */
+        body.dark-theme {
+            background: linear-gradient(135deg, #05070f 0%, #0b0a1a 50%, #14051c 100%);
+            color: #f8fafc;
+        }
+        body.light-theme {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+            color: #000000;
+        }
+        
+        /* LIQUID GLASS ULTRA CONTRAST ADAPTATION */
+        .liquid-glass {
+            transition: all 0.3s ease;
+        }
+        body.dark-theme .liquid-glass {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+        }
+        body.light-theme .liquid-glass {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 8px 24px 0 rgba(15, 23, 42, 0.08);
+        }
+        
+        /* PREMIUM CARDS */
+        body.dark-theme .glass-card-premium {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(236, 72, 153, 0.04));
+            border: 1px solid rgba(139, 92, 246, 0.25);
+        }
+        body.light-theme .glass-card-premium {
+            background: linear-gradient(135deg, #f0fdf4, #eff6ff);
+            border: 1px solid #94a3b8;
+        }
+        
+        /* INPUT CONTRAST FIXES */
+        .glass-input {
+            transition: all 0.2s ease;
+        }
+        body.dark-theme .glass-input {
+            color: white;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        body.light-theme .glass-input {
+            color: #000000;
+            background: #ffffff;
+            border: 1px solid #94a3b8;
+        }
+        .glass-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+            border-color: #6366f1;
+        }
+
+        /* QUICK ADJUST STEPPER BUTTONS (EDIT AMOUNT MODAL) */
+        .quick-adjust-btn {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 8px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            color: #e11d48;
+            background: rgba(225, 29, 72, 0.08);
+            border: 1px solid rgba(225, 29, 72, 0.18);
+            transition: all 0.15s ease;
+        }
+        .quick-adjust-btn:active {
+            transform: scale(0.93);
+            background: rgba(225, 29, 72, 0.18);
+        }
+        
+        /* LIGHT MODE SPECIFIC TEXT RE-COLOR FOR HIGH CONTRAST (ALL GREY TO BLACK) */
+        body.light-theme .text-slate-100,
+        body.light-theme .text-slate-200,
+        body.light-theme .text-slate-300,
+        body.light-theme .text-slate-400,
+        body.light-theme .text-slate-500,
+        body.light-theme .text-slate-600,
+        body.light-theme .text-slate-700,
+        body.light-theme .text-slate-800,
+        body.light-theme .text-slate-900,
+        body.light-theme .text-gray-500,
+        body.light-theme p, 
+        body.light-theme span, 
+        body.light-theme label {
+            color: #000000 !important;
+        }
+
+        body.light-theme .opacity-40,
+        body.light-theme .opacity-50,
+        body.light-theme .opacity-60,
+        body.light-theme .opacity-70,
+        body.light-theme .opacity-80,
+        body.light-theme .opacity-90 {
+            opacity: 1 !important;
+            color: #000000 !important;
+        }
+        
+        body.light-theme .bg-slate-500\/5, 
+        body.light-theme .bg-slate-500\/10,
+        body.light-theme .bg-white\/5 {
+            background-color: #f1f5f9 !important;
+        }
+
+        /* FIX: CUSTOM DROPDOWN BACKGROUND IN LIGHT MODE */
+        body.light-theme .custom-options {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+        }
+        body.light-theme .custom-options > div {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border-color: #f1f5f9 !important;
+        }
+        body.light-theme .custom-options > div.sticky {
+            background-color: #f8fafc !important;
+            color: #475569 !important;
+            opacity: 1 !important;
+        }
+        body.light-theme .custom-options > div:hover:not(.sticky) {
+            background-color: #f1f5f9 !important;
+        }
+        body.light-theme .custom-options > div.bg-indigo-50 {
+            background-color: #e0e7ff !important;
+            color: #4f46e5 !important;
+            font-weight: bold !important;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: iOSSheetUp 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        
+        @keyframes iOSSheetUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .ios-spring-in {
+            animation: iosSpring 0.4s cubic-bezier(0.25, 1.1, 0.4, 1) forwards;
+        }
+        @keyframes iosSpring {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .nav-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: currentColor;
+            opacity: 0;
+            transition: all 0.2s ease;
+            margin-top: 3px;
+        }
+        .nav-btn.active-menu .nav-dot { opacity: 1; transform: scale(1.2); }
+        
+        .ios-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #6366f1;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        body.light-theme .ios-checkbox {
+            border: 2px solid #000000;
+        }
+        .ios-checkbox:checked {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .ios-checkbox:checked::after {
+            content: "\f00c";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: white;
+            font-size: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Custom Scrollbar for inner modals */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 4px; }
+    </style>
 </head>
-<body class="dark-theme dark min-h-screen flex flex-col justify-between pb-32">
+<body class="dark-theme min-h-screen flex flex-col justify-between pb-32">
 
     <div id="premium-toast" class="fixed inset-0 z-[10005] hidden items-end justify-center p-4 pb-28 pointer-events-none">
         <div id="toast-body" class="w-full max-w-xs rounded-2xl p-4 flex items-center gap-3.5 shadow-2xl border pointer-events-auto backdrop-blur-2xl ios-spring-in">
@@ -433,7 +621,6 @@
         </div>
     </div>
 
-    <!-- MAIN APP TABS -->
     <div class="w-full max-w-md mx-auto px-4 pt-4 flex-1 flex flex-col">
         
         <div class="flex justify-between items-center mb-4 liquid-glass p-3.5 rounded-2xl w-full">
@@ -620,7 +807,7 @@
                 <div class="flex justify-between items-center">
                     <div>
                         <h4 class="text-xs font-bold">Versi Engine</h4>
-                        <p class="text-[9px] opacity-70">UrusDuit High Contrast Stable v8.3</p>
+                        <p class="text-[9px] opacity-70">UrusDuit High Contrast Engine v7.6</p>
                     </div>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-500/10 opacity-70">STABLE</span>
                 </div>
@@ -694,7 +881,6 @@
         </div>
     </div>
 
-    <!-- MAIN JAVASCRIPT MODULES INCLUDED HERE -->
     <script>
         // --- CUSTOM DROPDOWN ENGINE ---
         function initCustomDropdown(selectId) {
@@ -886,6 +1072,7 @@
             initCustomDropdown('select-bulan-aktif');
         }
 
+        // NEW: Only list months that have histories for the History Log dropdown
         function janaSenaraiBulanSejarah() {
             const selectSejarah = document.getElementById('select-bulan-sejarah');
             if(!selectSejarah) return;
@@ -1350,8 +1537,6 @@
             const amaunBaruInput = prompt(`Kemaskini Amaun Bayaran Sejarah untuk "${logItem.nama}":`, logItem.amaun);
             if(amaunBaruInput === null) return;
             const amaunBaru = parseFloat(amaunBaruInput) || 0;
-            
-            if(logItem.amaun < 0) return paparToast("Dilarang", "Log pemulangan tidak boleh diedit, hanya dipadam.", "amaran");
             if(amaunBaru < 0) return paparToast("Ralat Amaun", "Sila masukkan amaun baru yang sah.", "amaran");
 
             const perbezaan = amaunBaru - logItem.amaun;
@@ -1401,30 +1586,15 @@
             const logItem = data.bayaranHistory[idxLog];
 
             if(logItem.tipe === 'catHut') {
-                if (logItem.amaun > 0) {
-                    let diffToRemove = logItem.amaun;
-                    for (let i = 0; i < data.hutang.length; i++) {
-                        let h = data.hutang[i];
-                        let kat = h.kategori || "Lain-lain";
-                        if (kat === logItem.targetId && h.sudahDibayar > 0) {
-                            let takeBack = Math.min(h.sudahDibayar, diffToRemove);
-                            h.sudahDibayar -= takeBack;
-                            diffToRemove -= takeBack;
-                            if (diffToRemove <= 0) break;
-                        }
-                    }
-                } else if (logItem.amaun < 0) {
-                    let diffToAdd = Math.abs(logItem.amaun);
-                    for (let i = 0; i < data.hutang.length; i++) {
-                        let h = data.hutang[i];
-                        let kat = h.kategori || "Lain-lain";
-                        if (kat === logItem.targetId && h.status === 'Aktif') {
-                            let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
-                            let toAdd = Math.min(baki, diffToAdd);
-                            h.sudahDibayar += toAdd;
-                            diffToAdd -= toAdd;
-                            if (diffToAdd <= 0) break;
-                        }
+                let diffToRemove = logItem.amaun;
+                for (let i = 0; i < data.hutang.length; i++) {
+                    let h = data.hutang[i];
+                    let kat = h.kategori || "Lain-lain";
+                    if (kat === logItem.targetId && h.sudahDibayar > 0) {
+                        let takeBack = Math.min(h.sudahDibayar, diffToRemove);
+                        h.sudahDibayar -= takeBack;
+                        diffToRemove -= takeBack;
+                        if (diffToRemove <= 0) break;
                     }
                 }
             } else if(logItem.tipe === 'catKom') {
@@ -1639,6 +1809,7 @@
             initCustomDropdown('input-kategori-hutang');
         }
 
+        // NEW: Only list active categories that have an active amount/balance
         function segarkanDropdownTapisanKategoriHutang() {
             const selectFilter = document.getElementById('filter-hutang-kategori');
             if(!selectFilter) return;
@@ -1649,6 +1820,7 @@
             
             if(data && data.hutang) {
                 data.hutang.forEach(h => {
+                    // Category has an active debt amount
                     if (h.status === 'Aktif' && (h.jumlahAsal - h.sudahDibayar) > 0) {
                         activeCategories.add(h.kategori || "Lain-lain");
                     }
@@ -1738,21 +1910,12 @@
                         ...data.hutang[idx], nama, kategori, pemiutang, jumlahAsal, ansuran, sudahDibayar, faedah, tarikhBayar, status, isMonthlyPay
                     };
                     
-                    let diff = sudahDibayar - prevSudahDibayar;
-                    if (diff !== 0) {
-                        if (diff < 0 && data.hutangCatPaid && data.hutangCatPaid[kategori]) {
-                            data.hutangCatPaid[kategori] = false;
-                        }
-                        
+                    if (sudahDibayar > prevSudahDibayar) {
+                        let diff = sudahDibayar - prevSudahDibayar;
                         if(!data.bayaranHistory) data.bayaranHistory = [];
                         const tarikhHariIni = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
                         data.bayaranHistory.push({
-                            id: Date.now(), 
-                            tipe: 'catHut', 
-                            targetId: kategori, 
-                            nama: `Edit Akaun: ${nama} ${diff > 0 ? '(Tambah)' : '(Batal)'}`, 
-                            amaun: diff, 
-                            tarikh: tarikhHariIni
+                            id: Date.now(), tipe: 'catHut', targetId: kategori, nama: `Kategori Hutang: ${kategori}`, amaun: diff, tarikh: tarikhHariIni
                         });
                     }
 
@@ -1796,6 +1959,21 @@
 
             document.getElementById('text-btn-hutang').innerText = "Simpan Rekod";
             document.getElementById('btn-hantar-hutang').className = "col-span-3 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center gap-1 shadow-md";
+        }
+
+        function toggleDarkMode() {
+            masterDatabase.isDarkMode = !masterDatabase.isDarkMode;
+            simpanKeLocalStorage();
+            terapkanTemaSemasa();
+            paparToast("Tema Paparan", masterDatabase.isDarkMode ? "Mod Gelap diaktifkan." : "Mod Terang diaktifkan.", "info");
+        }
+
+        function terapkanTemaSemasa() {
+            document.body.className = masterDatabase.isDarkMode ? "dark-theme min-h-screen flex flex-col justify-between pb-32" : "light-theme min-h-screen flex flex-col justify-between pb-32";
+        }
+
+        function mohonResetSemuaData() {
+            bukaModal("Padam Semua Data?", "Tindakan ini memadam kesemua rekod selama-lamanya. Anda pasti?", "fa-triangle-exclamation", "bg-rose-500/20", "text-rose-500", "bg-rose-600 hover:bg-rose-700", "fa-skull", "Padam Semua", () => { localStorage.clear(); location.reload(); });
         }
 
         function isHutangSelesai(h) {
@@ -1842,16 +2020,6 @@
                 else komitmenBelumBayar += i.amaun;
             });
 
-            let quickPayHutang = {};
-            if (data.bayaranHistory) {
-                data.bayaranHistory.forEach(log => {
-                    if (log.tipe === 'catHut') { 
-                        if (!quickPayHutang[log.targetId]) quickPayHutang[log.targetId] = 0;
-                        quickPayHutang[log.targetId] += log.amaun;
-                    }
-                });
-            }
-
             let totalAnsuranHutang = 0;
             let totalBakiHutang = 0;
             let totalBakiAnsuran = 0; 
@@ -1886,17 +2054,11 @@
             let hutangSudahBayar = 0;
 
             for(let kat in ansuranKategori) {
-                let isPaid = data.hutangCatPaid[kat] || false;
                 let amt = ansuranKategori[kat];
-                let quickPaid = quickPayHutang[kat] || 0;
-                
-                if(isPaid) {
+                if(data.hutangCatPaid[kat]) {
                     hutangSudahBayar += amt;
                 } else {
-                    let normalizedQuickPay = Math.max(0, quickPaid);
-                    let remaining = Math.max(0, amt - normalizedQuickPay);
-                    hutangBelumBayar += remaining;
-                    hutangSudahBayar += Math.min(amt, normalizedQuickPay);
+                    hutangBelumBayar += amt;
                 }
             }
 
@@ -1990,7 +2152,7 @@
                                     <span class="text-[9px] opacity-60 mt-0.5"><i class="fa-solid fa-calendar-day text-[8px]"></i> ${log.tarikh} | ${labelTipe}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="font-extrabold ${log.amaun < 0 ? 'text-rose-500' : 'text-indigo-600 dark:text-indigo-400'}">RM ${log.amaun.toFixed(2)}</span>
+                                    <span class="font-extrabold text-indigo-600 dark:text-indigo-400">RM ${log.amaun.toFixed(2)}</span>
                                     <button onclick="editSejarah(${log.id})" class="text-indigo-500 bg-indigo-500/10 w-6 h-6 flex items-center justify-center rounded hover:bg-indigo-500/20"><i class="fa-solid fa-pen text-[9px]"></i></button>
                                     <button onclick="padamSejarah(${log.id})" class="text-rose-500 bg-rose-500/10 w-6 h-6 flex items-center justify-center rounded hover:bg-rose-500/20"><i class="fa-solid fa-trash text-[9px]"></i></button>
                                 </div>
@@ -2005,7 +2167,7 @@
 
             const checklistContainer = document.getElementById('dashboard-checklist-container');
             let itemSelesai = 0;
-            let totalItemChecklist = data.komitmen.length + Object.keys(ansuranKategori).length;
+            let totalItemChecklist = data.komitmen.length + Object.keys(bakiKategoriSemua).length;
 
             if(checklistContainer) {
                 checklistContainer.innerHTML = "";
@@ -2026,25 +2188,18 @@
                     `;
                 });
 
-                for(let kat in ansuranKategori) {
+                for(let kat in bakiKategoriSemua) {
                     let isPaid = data.hutangCatPaid[kat] || false;
-                    let targetAnsuranPenuh = ansuranKategori[kat];
-                    let quickPaidAmount = quickPayHutang[kat] || 0;
-                    
-                    let amtToShow = Math.max(0, targetAnsuranPenuh - Math.max(0, quickPaidAmount));
-                    let isCompleted = isPaid || amtToShow <= 0;
-
-                    if (isCompleted) itemSelesai++;
-                    
-                    let displayAmount = isPaid ? targetAnsuranPenuh : amtToShow;
+                    let amt = bakiKategoriSemua[kat];
+                    if(isPaid) itemSelesai++;
                     
                     checklistContainer.innerHTML += `
                         <div class="flex justify-between items-center bg-amber-500/5 border border-amber-500/20 p-2.5 rounded-xl text-xs hover:border-amber-500/30 transition-all">
                             <div class="flex items-center gap-2.5">
-                                <input type="checkbox" class="ios-checkbox" onchange="toggleHutangCatPaid('${kat}')" ${isPaid ? 'checked' : ''} ${(!isPaid && amtToShow <= 0) ? 'disabled' : ''}>
-                                <span class="font-bold text-slate-800 dark:text-slate-200 ${isCompleted ? 'line-through opacity-40' : ''}">💳 Hutang: ${kat}</span>
+                                <input type="checkbox" class="ios-checkbox" onchange="toggleHutangCatPaid('${kat}')" ${isPaid ? 'checked' : ''}>
+                                <span class="font-bold text-slate-800 dark:text-slate-200 ${isPaid ? 'line-through opacity-40' : ''}">💳 Hutang: ${kat}</span>
                             </div>
-                            <span class="font-extrabold ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-500'}">RM ${displayAmount.toFixed(2)}</span>
+                            <span class="font-extrabold ${isPaid ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-500'}">RM ${amt.toFixed(2)}</span>
                         </div>
                     `;
                 }
@@ -2071,14 +2226,12 @@
             }
 
             const hContainer = document.getElementById('hutang-list-container');
-            const filterEl = document.getElementById('filter-hutang-kategori');
-            const filterKategori = filterEl ? (filterEl.value || 'semua') : 'semua';
             const sortMode = document.getElementById('sort-hutang-mode') ? document.getElementById('sort-hutang-mode').value : 'default';
+            const filterKategori = document.getElementById('filter-hutang-kategori') ? document.getElementById('filter-hutang-kategori').value : 'semua';
             
             if(hContainer) {
                 hContainer.innerHTML = "";
                 let hutangDiproses = [...data.hutang];
-                
                 if (sortMode === 'default') {
                     hutangDiproses.sort((a, b) => {
                         let tA = parseInt(a.tarikhBayar) || 99;
@@ -2088,7 +2241,7 @@
                 }
 
                 if (filterKategori !== 'semua') {
-                    hutangDiproses = hutangDiproses.filter(h => (h.kategori || "Lain-lain") === filterKategori);
+                    hutangDiproses = hutangDiproses.filter(h => h.kategori === filterKategori);
                 }
 
                 let hutangAktifSenarai = hutangDiproses.filter(h => !isHutangSelesai(h));
@@ -2099,9 +2252,8 @@
                 } else if (sortMode === 'kategori') {
                     const kelompokHutang = {};
                     hutangAktifSenarai.forEach(h => {
-                        let safeKat = h.kategori || "Lain-lain";
-                        if (!kelompokHutang[safeKat]) kelompokHutang[safeKat] = [];
-                        kelompokHutang[safeKat].push(h);
+                        if (!kelompokHutang[h.kategori]) kelompokHutang[h.kategori] = [];
+                        kelompokHutang[h.kategori].push(h);
                     });
 
                     Object.keys(kelompokHutang).sort().forEach(kat => {
@@ -2333,6 +2485,7 @@
         }
         
         function eksportData() {
+            // NEW: Modified export path structure
             const dataStr = JSON.stringify(masterDatabase, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -2348,6 +2501,11 @@
             
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", url);
+            
+            // Note: Modern browsers restrict web applications from forcing custom file paths 
+            // directly onto Internal Storage without a picker API. Adding the relative path 
+            // "UrusDuit/Backup/" will prompt the browser to generate this folder if its 
+            // permission settings allow it, otherwise it downloads strictly to 'Downloads'.
             downloadAnchorNode.setAttribute("download", "UrusDuit/Backup/" + fileName);
             
             document.body.appendChild(downloadAnchorNode);
@@ -2380,6 +2538,7 @@
             reader.readAsText(file);
         }
 
+        // NEW TEMPLATE FUNCTIONS FOR LAPORAN KHAS
         function muatSenaraiTemplateLaporan() {
             const select = document.getElementById('select-laporan-template');
             if(!masterDatabase.laporanTemplates) masterDatabase.laporanTemplates = {};
@@ -2631,6 +2790,34 @@
             paparToast("Berjaya Disalin", "Teks laporan sedia untuk di-paste (Tampal).", "sukses");
         }
     </script>
+    
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+          console.log('Service Worker registered!', reg);
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated') {
+                window.location.reload();
+              }
+            });
+          });
+          setInterval(() => reg.update(), 60 * 1000);
+        })
+        .catch(err => console.error('Service Worker registration failed:', err));
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+    });
+  }
+</script> 
 </body>
 </html>
-```
