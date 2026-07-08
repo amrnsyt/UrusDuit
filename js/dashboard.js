@@ -721,4 +721,6 @@ function kemaskiniSemuaPaparan() {
             hContainer.innerHTML += selesaiBlockHtml;
         }
     }
+
+    if (typeof renderAgihanPage === 'function') renderAgihanPage();
 }

@@ -371,6 +371,63 @@
         </div>
     </div>
 
+    <div id="pilih-agihan-modal" class="fixed inset-0 z-[10002] hidden items-center justify-center bg-black/60 backdrop-blur-md px-4" onclick="if(event.target === this) tutupPilihAgihanModal()">
+        <div class="liquid-glass glass-card-premium rounded-3xl p-6 w-full max-w-sm ios-spring-in flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-500/10 shrink-0">
+                <h3 class="text-xs font-bold flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                    <i class="fa-solid fa-list-check"></i> Pilih Komitmen Untuk Agihan
+                </h3>
+                <button onclick="tutupPilihAgihanModal()" class="text-slate-400 hover:text-slate-200 cursor-pointer w-6 h-6 flex justify-center items-center rounded-full bg-slate-500/20">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+            <p class="text-[10px] opacity-70 mb-2 shrink-0">Komitmen dipilih akan dipaparkan di halaman Agihan untuk direkodkan resit, tanpa mengubah amaun asal di Komitmen.</p>
+            <div id="pilih-agihan-list" class="overflow-y-auto pr-2 space-y-1.5 flex-1 custom-scrollbar"></div>
+            <button onclick="simpanPilihanAgihan()" class="w-full mt-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer flex items-center justify-center gap-2 shrink-0">
+                <i class="fa-solid fa-check"></i> Simpan Pilihan
+            </button>
+        </div>
+    </div>
+
+    <div id="scan-resit-modal" class="fixed inset-0 z-[10003] hidden items-center justify-center bg-black/60 backdrop-blur-md px-4" onclick="if(event.target === this) tutupScanResitModal()">
+        <div class="liquid-glass glass-card-premium rounded-3xl p-6 w-full max-w-sm ios-spring-in flex flex-col max-h-[85vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-500/10">
+                <h3 id="title-scan-resit" class="text-xs font-bold flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                    <i class="fa-solid fa-receipt"></i> Imbas Resit
+                </h3>
+                <button onclick="tutupScanResitModal()" class="text-slate-400 hover:text-slate-200 cursor-pointer w-6 h-6 flex justify-center items-center rounded-full bg-slate-500/20">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+
+            <label class="w-full py-6 bg-emerald-500/5 border border-dashed border-emerald-500/30 rounded-2xl cursor-pointer flex flex-col items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 mb-3">
+                <i class="fa-solid fa-camera text-xl"></i>
+                <span class="text-[10px] font-bold" id="label-scan-resit">Ketik untuk ambil/muat naik gambar resit</span>
+                <input type="file" id="input-file-resit" accept="image/*" capture="environment" class="hidden" onchange="onFailResitDipilih(event)">
+            </label>
+
+            <div id="preview-resit-wrapper" class="hidden mb-3">
+                <img id="preview-resit-img" class="w-full max-h-40 object-contain rounded-xl border border-slate-500/15">
+            </div>
+
+            <div id="scan-resit-status" class="hidden text-[10px] text-center py-2 text-indigo-500 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Mengimbas resit dengan AI...</div>
+
+            <div id="scan-resit-form" class="space-y-3">
+                <div>
+                    <label class="text-[10px] font-bold block mb-1">Nama Kedai</label>
+                    <input type="text" id="input-resit-kedai" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="cth: NSK Trade City">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold block mb-1">Jumlah Total (RM)</label>
+                    <input type="number" step="0.01" id="input-resit-jumlah" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="0.00">
+                </div>
+                <button onclick="simpanResit()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check"></i> Simpan & Tolak Baki
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="laporan-subhutang-modal" class="fixed inset-0 z-[10003] hidden items-center justify-center bg-black/60 backdrop-blur-md px-4" onclick="if(event.target === this) tutupLaporanSubHutang()">
         <div class="liquid-glass glass-card-premium rounded-3xl p-6 w-full max-w-sm ios-spring-in flex flex-col max-h-[85vh]">
             <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-500/10">
@@ -551,6 +608,32 @@
             </div>
         </div>
 
+        <div id="tab-agihan" class="tab-content space-y-4 w-full">
+            <div class="liquid-glass rounded-2xl p-4 text-center">
+                <p class="text-[10px] opacity-70 font-bold uppercase text-emerald-600 dark:text-emerald-400">Jumlah Baki Agihan (Komitmen Dipilih)</p>
+                <span id="display-total-baki-agihan" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 block mt-1">RM 0.00</span>
+                <span id="total-agihan-count" class="text-[10px] opacity-70 block font-medium mt-1">0 Komitmen Dipilih</span>
+            </div>
+
+            <button onclick="bukaPilihAgihanModal()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-3 rounded-2xl cursor-pointer transition-all shadow-lg flex items-center justify-center gap-2">
+                <i class="fa-solid fa-list-check"></i> Pilih Komitmen Untuk Agihan
+            </button>
+
+            <div class="liquid-glass rounded-2xl p-3.5 space-y-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider opacity-70"><i class="fa-solid fa-key text-amber-500 mr-1"></i>Gemini API Key</span>
+                <div class="flex gap-2">
+                    <input type="password" id="input-gemini-api-key" class="flex-1 glass-input rounded-lg px-2.5 py-1.5 text-xs" placeholder="Tampal API Key Gemini di sini">
+                    <button onclick="simpanGeminiApiKey()" type="button" class="bg-slate-500/10 border border-slate-500/20 text-[10px] px-3 rounded-lg cursor-pointer font-bold hover:bg-slate-500/20 transition-colors">Simpan</button>
+                </div>
+                <p class="text-[9px] opacity-50 leading-snug">Key disimpan hanya pada peranti ini dan digunakan untuk mengimbas resit terus dari pelayar.</p>
+            </div>
+
+            <div class="space-y-2">
+                <p class="text-[10px] uppercase tracking-wider opacity-70 font-bold px-1">Agihan Komitmen Aktif</p>
+                <div id="agihan-list-container" class="space-y-3"></div>
+            </div>
+        </div>
+
         <div id="tab-hutang" class="tab-content space-y-4 w-full">
             <div class="liquid-glass rounded-2xl p-4 text-center space-y-2">
                 <div>
@@ -667,6 +750,11 @@
                     <span class="text-[8px] font-bold mt-0.5 text-white">Komitmen</span>
                     <div class="nav-dot"></div>
                 </button>
+                <button onclick="tukarTab('agihan', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
+                    <i class="fa-solid fa-camera text-sm"></i>
+                    <span class="text-[8px] font-bold mt-0.5 text-white">Agihan</span>
+                    <div class="nav-dot"></div>
+                </button>
                 <button onclick="tukarTab('hutang', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
                     <i class="fa-solid fa-hand-holding-dollar text-sm"></i>
                     <span class="text-[8px] font-bold mt-0.5 text-white">Hutang</span>
@@ -687,6 +775,7 @@
     <script src="js/hutang.js"></script>
     <script src="js/gaji.js"></script>
     <script src="js/komitmen.js"></script>
+    <script src="js/agihan.js"></script>
     <script src="js/tetapan.js"></script>
 </body>
 </html>

@@ -142,6 +142,7 @@ let masterDatabase = {
     customKategori: [],
     customHutangKategori: [], 
     laporanTemplates: {},
+    geminiApiKey: "",
     bulan: {}
 };
 
@@ -315,7 +316,7 @@ function tukarBulan() {
 }
 
 function janaStrukturBulanKosong() {
-    return { gajiPokok: 0, ot15: 0, ot20: 0, epfRate: 11, pcb: 0, socsoAuto: true, socsoManualVal: 0, eisManualVal: 0, komitmen: [], hutang: [], bayaranHistory: [], hutangCatPaid: {} };
+    return { gajiPokok: 0, ot15: 0, ot20: 0, epfRate: 11, pcb: 0, socsoAuto: true, socsoManualVal: 0, eisManualVal: 0, komitmen: [], hutang: [], bayaranHistory: [], hutangCatPaid: {}, alokasi: { enabled: [], resit: {} } };
 }
 
 function muatDataBalanSemasa() {
@@ -323,6 +324,7 @@ function muatDataBalanSemasa() {
         masterDatabase.bulan[bulanAktif] = janaStrukturBulanKosong();
     }
     const data = masterDatabase.bulan[bulanAktif];
+    if (!data.alokasi) data.alokasi = { enabled: [], resit: {} };
     document.getElementById('input-gaji-pokok').value = data.gajiPokok || "";
     document.getElementById('input-ot-15').value = data.ot15 || "";
     document.getElementById('input-ot-20').value = data.ot20 || "";
