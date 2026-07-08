@@ -68,11 +68,29 @@ function simpanPilihanAgihan() {
     paparToast("Pilihan Disimpan", "Senarai komitmen untuk agihan telah dikemaskini.", "sukses");
 }
 
-// --- GEMINI API KEY ---
+// --- GEMINI API KEY (POPUP) ---
+function bukaGeminiKeyModal() {
+    const keyInput = document.getElementById('input-gemini-api-key');
+    if (keyInput) keyInput.value = masterDatabase.geminiApiKey || "";
+
+    const modal = document.getElementById('gemini-key-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+}
+
+function tutupGeminiKeyModal() {
+    const modal = document.getElementById('gemini-key-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+}
+
 function simpanGeminiApiKey() {
     const key = document.getElementById('input-gemini-api-key').value.trim();
     masterDatabase.geminiApiKey = key;
     simpanKeLocalStorage();
+    tutupGeminiKeyModal();
     paparToast("API Key Disimpan", "Gemini API Key telah disimpan pada peranti ini.", "sukses");
 }
 
@@ -83,11 +101,6 @@ function renderAgihanPage() {
 
     const data = masterDatabase.bulan[bulanAktif];
     const alokasi = pastikanAlokasiWujud();
-
-    const keyInput = document.getElementById('input-gemini-api-key');
-    if (keyInput && document.activeElement !== keyInput) {
-        keyInput.value = masterDatabase.geminiApiKey || "";
-    }
 
     const komitmenDipilih = data.komitmen.filter(k => alokasi.enabled.includes(k.id));
 
@@ -219,7 +232,7 @@ function onFailResitDipilih(event) {
 async function imbasResitDenganGemini() {
     const apiKey = (masterDatabase.geminiApiKey || "").trim();
     if (!apiKey) {
-        paparToast("Tiada API Key", "Sila masukkan Gemini API Key di halaman Agihan dahulu. Anda masih boleh isi manual.", "amaran");
+        paparToast("Tiada API Key", "Sila tetapkan Gemini API Key di Tetapan dahulu. Anda masih boleh isi manual.", "amaran");
         return;
     }
     if (!resitFailBase64Semasa) return;
@@ -227,42 +240,63 @@ async function imbasResitDenganGemini() {
     const statusEl = document.getElementById('scan-resit-status');
     statusEl.classList.remove('hidden');
 
-    try {
-        const prompt = 'Anda melihat gambar resit pembelian. Ekstrak nama kedai/pasaraya dan jumlah TOTAL/JUMLAH BESAR akhir yang perlu dibayar (selepas rounding/pembundaran jika ada). Balas HANYA dengan JSON tanpa markdown, format tepat: {"kedai": "Nama Kedai", "jumlah": 0.00}';
+    // Cuba beberapa model secara berturutan sekiranya satu tidak tersedia untuk API key/akaun ini.
+    const senaraiModel = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
+    const prompt = 'Anda ialah enjin OCR resit. Lihat gambar resit pembelian ini dengan teliti. Ekstrak DUA maklumat sahaja: (1) nama kedai/pasaraya, (2) jumlah TOTAL/JUMLAH BESAR akhir yang perlu dibayar (selepas rounding/pembundaran jika ada, biasanya baris terakhir berlabel "TOTAL", "JUMLAH", "GRAND TOTAL" atau "AMOUNT DUE"). Balas HANYA dalam format JSON tepat seperti ini, tanpa markdown dan tanpa teks lain: {"kedai": "Nama Kedai", "jumlah": 0.00}';
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [
-                        { text: prompt },
-                        { inline_data: { mime_type: resitFailMimeSemasa, data: resitFailBase64Semasa } }
-                    ]
-                }]
-            })
-        });
+    let ralatTerakhir = null;
 
-        const hasilJson = await response.json();
-        if (!response.ok) {
-            const mesejRalat = (hasilJson && hasilJson.error && hasilJson.error.message) ? hasilJson.error.message : "Ralat tidak diketahui daripada Gemini API.";
-            throw new Error(mesejRalat);
+    for (const model of senaraiModel) {
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            { inline_data: { mime_type: resitFailMimeSemasa, data: resitFailBase64Semasa } }
+                        ]
+                    }],
+                    generationConfig: { response_mime_type: "application/json", temperature: 0 }
+                })
+            });
+
+            const hasilJson = await response.json();
+
+            if (!response.ok) {
+                const mesejRalat = (hasilJson && hasilJson.error && hasilJson.error.message) ? hasilJson.error.message : `Ralat HTTP ${response.status}`;
+                ralatTerakhir = mesejRalat;
+                continue; // cuba model seterusnya
+            }
+
+            const kandungan = hasilJson.candidates && hasilJson.candidates[0] && hasilJson.candidates[0].content;
+            const teks = kandungan && kandungan.parts && kandungan.parts[0] && kandungan.parts[0].text;
+
+            if (!teks) {
+                const sebab = (hasilJson.candidates && hasilJson.candidates[0] && hasilJson.candidates[0].finishReason) || "Tiada respons teks";
+                ralatTerakhir = `Model tidak memulangkan data (${sebab})`;
+                continue;
+            }
+
+            const teksBersih = teks.replace(/```json|```/g, '').trim();
+            const dataResit = JSON.parse(teksBersih);
+
+            document.getElementById('input-resit-kedai').value = dataResit.kedai || "";
+            document.getElementById('input-resit-jumlah').value = dataResit.jumlah ? parseFloat(dataResit.jumlah).toFixed(2) : "";
+
+            paparToast("Imbasan Berjaya", "Sila semak maklumat sebelum simpan.", "sukses");
+            statusEl.classList.add('hidden');
+            return;
+
+        } catch (err) {
+            ralatTerakhir = err.message || String(err);
         }
-
-        const teks = hasilJson.candidates[0].content.parts[0].text;
-        const teksBersih = teks.replace(/```json|```/g, '').trim();
-        const dataResit = JSON.parse(teksBersih);
-
-        document.getElementById('input-resit-kedai').value = dataResit.kedai || "";
-        document.getElementById('input-resit-jumlah').value = dataResit.jumlah ? parseFloat(dataResit.jumlah).toFixed(2) : "";
-
-        paparToast("Imbasan Berjaya", "Sila semak maklumat sebelum simpan.", "sukses");
-    } catch (err) {
-        console.error('Ralat imbasan Gemini:', err);
-        paparToast("Imbasan Gagal", "Tidak dapat mengimbas resit secara automatik. Sila isi manual.", "amaran");
-    } finally {
-        statusEl.classList.add('hidden');
     }
+
+    console.error('Ralat imbasan Gemini:', ralatTerakhir);
+    paparToast("Imbasan Gagal", `${ralatTerakhir || "Tidak dapat menghubungi Gemini API"}. Sila isi manual.`, "amaran");
+    statusEl.classList.add('hidden');
 }
 
 function simpanResit() {

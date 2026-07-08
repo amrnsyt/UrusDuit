@@ -270,6 +270,40 @@
         </div>
     </div>
 
+    <div id="gemini-key-modal" class="fixed inset-0 z-[10002] hidden items-center justify-center bg-black/60 backdrop-blur-md px-4" onclick="if(event.target === this) tutupGeminiKeyModal()">
+        <div class="liquid-glass glass-card-premium rounded-3xl p-6 w-full max-w-sm ios-spring-in flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl flex items-center justify-center bg-emerald-500/15 text-emerald-500 text-sm">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] uppercase tracking-wider font-bold opacity-60">Tetapan</p>
+                        <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">Gemini API Key</h3>
+                    </div>
+                </div>
+                <button onclick="tutupGeminiKeyModal()" class="text-slate-400 hover:text-slate-200 cursor-pointer w-7 h-7 flex justify-center items-center rounded-full bg-slate-500/20 shrink-0">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2 mb-4">
+                <label class="text-[10px] font-bold block">API Key</label>
+                <input type="password" id="input-gemini-api-key" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs" placeholder="Tampal API Key Gemini di sini">
+                <p class="text-[9px] opacity-50 leading-snug">Key disimpan hanya pada peranti ini dan digunakan oleh halaman Agihan untuk mengimbas resit terus dari pelayar.</p>
+            </div>
+
+            <div class="flex gap-2.5">
+                <button onclick="tutupGeminiKeyModal()" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-500/10 hover:bg-slate-500/20 text-slate-500 dark:text-slate-300 cursor-pointer transition-all">
+                    Batal
+                </button>
+                <button onclick="simpanGeminiApiKey()" class="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-lg cursor-pointer transition-all flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-check"></i> Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="hutang-form-modal" class="fixed inset-0 z-[10002] hidden items-center justify-center bg-black/60 backdrop-blur-md px-4" onclick="if(event.target === this) tutupBorangHutangModal()">
         <div class="liquid-glass glass-card-premium rounded-3xl p-6 w-full max-w-sm ios-spring-in flex flex-col max-h-[85vh] overflow-y-auto custom-scrollbar">
             <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-500/10">
@@ -712,12 +746,10 @@
                 <hr class="border-slate-500/10">
 
                 <div>
-                    <h4 class="text-xs font-bold text-emerald-600 dark:text-emerald-500 mb-2"><i class="fa-solid fa-key mr-1"></i> Gemini API Key (Imbasan Resit Agihan)</h4>
-                    <div class="flex gap-2">
-                        <input type="password" id="input-gemini-api-key" class="flex-1 glass-input rounded-xl px-3 py-2.5 text-xs" placeholder="Tampal API Key Gemini di sini">
-                        <button onclick="simpanGeminiApiKey()" type="button" class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] px-4 rounded-xl cursor-pointer font-bold hover:bg-emerald-500/20 transition-colors">Simpan</button>
-                    </div>
-                    <p class="text-[9px] opacity-50 leading-snug mt-1.5">Key disimpan hanya pada peranti ini dan digunakan oleh halaman Agihan untuk mengimbas resit terus dari pelayar.</p>
+                    <h4 class="text-xs font-bold text-emerald-600 dark:text-emerald-500 mb-2">Imbasan Resit AI (Halaman Agihan)</h4>
+                    <button onclick="bukaGeminiKeyModal()" class="w-full py-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-bold cursor-pointer hover:bg-emerald-500/20 transition-colors flex items-center justify-center">
+                        <i class="fa-solid fa-key mr-2"></i> Gemini API Key
+                    </button>
                 </div>
 
                 <hr class="border-slate-500/10">
