@@ -400,11 +400,19 @@
                 </button>
             </div>
 
-            <label class="w-full py-6 bg-emerald-500/5 border border-dashed border-emerald-500/30 rounded-2xl cursor-pointer flex flex-col items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 mb-3">
-                <i class="fa-solid fa-camera text-xl"></i>
-                <span class="text-[10px] font-bold" id="label-scan-resit">Ketik untuk ambil/muat naik gambar resit</span>
-                <input type="file" id="input-file-resit" accept="image/*" capture="environment" class="hidden" onchange="onFailResitDipilih(event)">
-            </label>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <label class="py-5 bg-emerald-500/5 border border-dashed border-emerald-500/30 rounded-2xl cursor-pointer flex flex-col items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                    <i class="fa-solid fa-camera text-lg"></i>
+                    <span class="text-[9px] font-bold text-center px-1">Ambil Gambar (Kamera)</span>
+                    <input type="file" id="input-file-resit-kamera" accept="image/*" capture="environment" class="hidden" onchange="onFailResitDipilih(event)">
+                </label>
+                <label class="py-5 bg-indigo-500/5 border border-dashed border-indigo-500/30 rounded-2xl cursor-pointer flex flex-col items-center justify-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+                    <i class="fa-solid fa-upload text-lg"></i>
+                    <span class="text-[9px] font-bold text-center px-1">Muat Naik Fail</span>
+                    <input type="file" id="input-file-resit-upload" accept="image/*" class="hidden" onchange="onFailResitDipilih(event)">
+                </label>
+            </div>
+            <p id="label-scan-resit" class="text-[9px] text-center opacity-60 mb-3">Belum ada gambar resit dipilih.</p>
 
             <div id="preview-resit-wrapper" class="hidden mb-3">
                 <img id="preview-resit-img" class="w-full max-h-40 object-contain rounded-xl border border-slate-500/15">
@@ -619,15 +627,6 @@
                 <i class="fa-solid fa-list-check"></i> Pilih Komitmen Untuk Agihan
             </button>
 
-            <div class="liquid-glass rounded-2xl p-3.5 space-y-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider opacity-70"><i class="fa-solid fa-key text-amber-500 mr-1"></i>Gemini API Key</span>
-                <div class="flex gap-2">
-                    <input type="password" id="input-gemini-api-key" class="flex-1 glass-input rounded-lg px-2.5 py-1.5 text-xs" placeholder="Tampal API Key Gemini di sini">
-                    <button onclick="simpanGeminiApiKey()" type="button" class="bg-slate-500/10 border border-slate-500/20 text-[10px] px-3 rounded-lg cursor-pointer font-bold hover:bg-slate-500/20 transition-colors">Simpan</button>
-                </div>
-                <p class="text-[9px] opacity-50 leading-snug">Key disimpan hanya pada peranti ini dan digunakan untuk mengimbas resit terus dari pelayar.</p>
-            </div>
-
             <div class="space-y-2">
                 <p class="text-[10px] uppercase tracking-wider opacity-70 font-bold px-1">Agihan Komitmen Aktif</p>
                 <div id="agihan-list-container" class="space-y-3"></div>
@@ -708,6 +707,17 @@
                             <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
                         </label>
                     </div>
+                </div>
+
+                <hr class="border-slate-500/10">
+
+                <div>
+                    <h4 class="text-xs font-bold text-emerald-600 dark:text-emerald-500 mb-2"><i class="fa-solid fa-key mr-1"></i> Gemini API Key (Imbasan Resit Agihan)</h4>
+                    <div class="flex gap-2">
+                        <input type="password" id="input-gemini-api-key" class="flex-1 glass-input rounded-xl px-3 py-2.5 text-xs" placeholder="Tampal API Key Gemini di sini">
+                        <button onclick="simpanGeminiApiKey()" type="button" class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] px-4 rounded-xl cursor-pointer font-bold hover:bg-emerald-500/20 transition-colors">Simpan</button>
+                    </div>
+                    <p class="text-[9px] opacity-50 leading-snug mt-1.5">Key disimpan hanya pada peranti ini dan digunakan oleh halaman Agihan untuk mengimbas resit terus dari pelayar.</p>
                 </div>
 
                 <hr class="border-slate-500/10">

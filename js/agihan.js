@@ -173,10 +173,11 @@ function bukaScanResitModal(komitmenId) {
     const item = data.komitmen.find(k => k.id === komitmenId);
 
     document.getElementById('title-scan-resit').innerHTML = `<i class="fa-solid fa-receipt"></i> Imbas Resit: ${item ? item.nama : ''}`;
-    document.getElementById('input-file-resit').value = "";
+    document.getElementById('input-file-resit-kamera').value = "";
+    document.getElementById('input-file-resit-upload').value = "";
     document.getElementById('input-resit-kedai').value = "";
     document.getElementById('input-resit-jumlah').value = "";
-    document.getElementById('label-scan-resit').innerText = "Ketik untuk ambil/muat naik gambar resit";
+    document.getElementById('label-scan-resit').innerText = "Belum ada gambar resit dipilih.";
     document.getElementById('preview-resit-wrapper').classList.add('hidden');
     document.getElementById('scan-resit-status').classList.add('hidden');
 
@@ -208,7 +209,7 @@ function onFailResitDipilih(event) {
         const previewImg = document.getElementById('preview-resit-img');
         previewImg.src = hasil;
         document.getElementById('preview-resit-wrapper').classList.remove('hidden');
-        document.getElementById('label-scan-resit').innerText = "Ketik untuk tukar gambar resit";
+        document.getElementById('label-scan-resit').innerText = fail.name || "Gambar resit dipilih.";
 
         imbasResitDenganGemini();
     };
