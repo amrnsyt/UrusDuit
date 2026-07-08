@@ -1,4 +1,4 @@
-const CACHE_NAME = 'urusduit-v3-modular';
+const CACHE_NAME = 'urusduit-v4-modular';
 const ASSETS = [
   '/',
   '/index.html',
@@ -31,30 +31,22 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// Network-first for EVERYTHING (HTML, JS, CSS): always try to fetch the
+// latest deployed file first, only falling back to the cached copy when
+// offline. This prevents devices from getting stuck on stale app code
+// after a new deploy (previously JS/CSS used cache-first, which could
+// serve outdated/buggy files indefinitely).
 self.addEventListener('fetch', (e) => {
   const isNavigation = e.request.mode === 'navigate' ||
     (e.request.method === 'GET' && e.request.headers.get('accept')?.includes('text/html'));
 
-  if (isNavigation) {
-    e.respondWith(
-      fetch(e.request)
-        .then((networkResponse) => {
-          const clone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
-          return networkResponse;
-        })
-        .catch(() => caches.match(e.request).then((cached) => cached || caches.match('/index.html')))
-    );
-    return;
-  }
-
   e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      return cachedResponse || fetch(e.request).then((networkResponse) => {
+    fetch(e.request)
+      .then((networkResponse) => {
         const clone = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
         return networkResponse;
-      });
-    })
+      })
+      .catch(() => caches.match(e.request).then((cached) => cached || (isNavigation ? caches.match('/index.html') : undefined)))
   );
 });
