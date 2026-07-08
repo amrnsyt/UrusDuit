@@ -115,11 +115,15 @@ function onQuickPayHutangAkaunChange() {
 }
 
 function bukaHistoryModal() {
-    janaSenaraiBulanSejarah();
-    kemaskiniSemuaPaparan();
     document.getElementById('history-modal').classList.remove('hidden');
     document.getElementById('history-modal').classList.add('flex');
     document.body.classList.add('overflow-hidden');
+    try {
+        janaSenaraiBulanSejarah();
+        kemaskiniSemuaPaparan();
+    } catch (err) {
+        console.error('Ralat memuatkan sejarah:', err);
+    }
 }
 function tutupHistoryModal() {
     document.getElementById('history-modal').classList.add('hidden');
@@ -716,21 +720,5 @@ function kemaskiniSemuaPaparan() {
             selesaiBlockHtml += `</div></div>`;
             hContainer.innerHTML += selesaiBlockHtml;
         }
-    }
-
-    let dsr = bakiGajiBersih > 0 ? (totalKomitmen + totalAnsuranHutang) / bakiGajiBersih * 100 : 0;
-    let skor = Math.max(0, 100 - dsr);
-    const scoreBar = document.getElementById('health-score-bar');
-    if(scoreBar) {
-        scoreBar.style.width = `${skor}%`;
-        if(skor < 40) scoreBar.className = "bg-rose-500 h-full rounded-full transition-all";
-        else if(skor < 70) scoreBar.className = "bg-amber-500 h-full rounded-full transition-all";
-        else scoreBar.className = "bg-emerald-500 h-full rounded-full transition-all";
-    }
-    const badge = document.getElementById('health-status-badge');
-    if(badge) {
-        if(skor < 40) { badge.innerText = "Kritikal"; badge.className = "text-[9px] font-bold text-rose-600 bg-rose-500/10 px-2 py-0.5 rounded-full"; }
-        else if(skor < 70) { badge.innerText = "Sederhana"; badge.className = "text-[9px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full"; }
-        else { badge.innerText = "Sangat Baik"; badge.className = "text-[9px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full"; }
     }
 }
