@@ -215,11 +215,7 @@ body.light-theme .ios-checkbox {
 
 
 /* ============================================================
-<<<<<<< HEAD
-   LIQUID GLASS THEME (iOS style) — performant, artifact-free
-=======
    LIQUID GLASS THEME v2 — iOS-accurate colour system + physics
->>>>>>> 31bdafc
    ============================================================ */
 
 /* ---------- COLOR SYSTEM: exact specs, both modes ---------- */
@@ -266,50 +262,30 @@ body.theme-liquidglass.light-theme {
     background: #05070f;
 }
 body.light-theme #liquidglass-wallpaper {
-    background: #eef2f7;
+    background: #eef1f6;
 }
 #liquidglass-wallpaper .lg-blob {
     position: absolute;
     border-radius: 50%;
-    filter: blur(110px);
-<<<<<<< HEAD
-    opacity: 0.28;
+    filter: blur(130px);
+    opacity: 0.16;
 }
-#liquidglass-wallpaper .lg-blob-1 { width: 380px; height: 380px; top: -80px; left: -60px; background: #4338ca; }
-#liquidglass-wallpaper .lg-blob-2 { width: 340px; height: 340px; top: 35%; right: -100px; background: #0369a1; }
-#liquidglass-wallpaper .lg-blob-3 { width: 320px; height: 320px; bottom: -90px; left: 15%; background: #9d174d; opacity: 0.20; }
-=======
-    opacity: 0.4;
-}
-#liquidglass-wallpaper .lg-blob-1 { width: 380px; height: 380px; top: -80px; left: -60px; background: var(--lg-indigo, #5856D6); }
-#liquidglass-wallpaper .lg-blob-2 { width: 340px; height: 340px; top: 35%; right: -100px; background: var(--lg-blue, #007AFF); }
-#liquidglass-wallpaper .lg-blob-3 { width: 320px; height: 320px; bottom: -90px; left: 15%; background: var(--lg-pink, #FF2D55); opacity: 0.30; }
-/* Scrim: keeps the vivid substrate from wrecking text contrast (WCAG mapping) */
->>>>>>> 31bdafc
+/* Kept to one harmonious cool family (indigo → blue → violet) instead of
+   mixing in a hot pink — that hue clash was what made the wash feel
+   gaudy/disjointed as the page scrolled past the fixed wallpaper. */
+#liquidglass-wallpaper .lg-blob-1 { width: 420px; height: 420px; top: -100px; left: -80px; background: var(--lg-indigo, #5856D6); }
+#liquidglass-wallpaper .lg-blob-2 { width: 380px; height: 380px; top: 40%; right: -120px; background: var(--lg-blue, #007AFF); }
+#liquidglass-wallpaper .lg-blob-3 { width: 360px; height: 360px; bottom: -110px; left: 10%; background: #5E5CE6; opacity: 0.12; }
+/* Scrim: much stronger now — the substrate should read as a faint ambient
+   tint behind the glass, not a colourful background in its own right. */
 #liquidglass-wallpaper::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(5, 7, 15, 0.55);
+    background: rgba(5, 7, 15, 0.78);
 }
 body.light-theme #liquidglass-wallpaper::after {
-<<<<<<< HEAD
-    background: rgba(255, 255, 255, 0.5);
-}
-
-/* Glass surfaces: clean blur + saturate only (no SVG displacement — caused
-   colour-bleed artefacts and heavy GPU cost on mobile). */
-body.theme-liquidglass .liquid-glass,
-body.theme-liquidglass .glass-card-premium,
-body.theme-liquidglass .glass-input {
-    background: rgba(22, 24, 32, 0.46) !important;
-    backdrop-filter: blur(18px) saturate(130%) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(130%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.28),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.20) !important;
-=======
-    background: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.82);
 }
 
 /* ---------- LAYER 1+2: Glass sheets (cards / sections / floating panels) ---------- */
@@ -329,20 +305,10 @@ body.theme-liquidglass .glass-input {
                 inset 0 1px 0 0 var(--lg-highlight) !important;
     text-shadow: 0 1px 3px var(--lg-text-shadow);
     transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1), filter 0.2s ease;
->>>>>>> 31bdafc
 }
 body.theme-liquidglass.light-theme .liquid-glass,
 body.theme-liquidglass.light-theme .glass-card-premium,
 body.theme-liquidglass.light-theme .glass-input {
-<<<<<<< HEAD
-    background: rgba(255, 255, 255, 0.58) !important;
-    border: 1px solid rgba(255, 255, 255, 0.75) !important;
-    box-shadow: 0 6px 20px 0 rgba(15, 23, 42, 0.10),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.85) !important;
-    color: #0f172a;
-}
-
-=======
     color: #0f172a;
 }
 
@@ -379,31 +345,41 @@ body.theme-liquidglass.light-theme .glass-card-premium:active {
     filter: brightness(0.97) saturate(1.15);
 }
 
->>>>>>> 31bdafc
 body.theme-liquidglass .rounded-xl,
 body.theme-liquidglass .rounded-2xl,
 body.theme-liquidglass .rounded-3xl {
     border-radius: 24px !important;
 }
 
-<<<<<<< HEAD
-/* Bounce feedback kept on transform only (cheap, GPU-compositor friendly).
-   Backdrop-filter removed from individual buttons — having it on dozens of
-   small buttons at once was the main cause of the sluggish feel. */
-body.theme-liquidglass button,
-body.theme-liquidglass .ios-checkbox {
-    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+/* Layered Translucency Hierarchy, part 2: many inner "recessed" panels
+   (stat tiles, checklist rows, history rows, badges) are plain low-opacity
+   Tailwind utility tints (bg-slate-500/5, bg-amber-500/5, bg-white/5, …).
+   Inside a frosted parent these render as flat, near-opaque, off-theme
+   patches — the "disgusting" inconsistency. Bring them into the same glass
+   language, one step down in elevation from the card that contains them. */
+/* Neutral recessed panels (stat tiles, checklist/history rows) → glass tint */
+body.theme-liquidglass [class*="bg-slate-500/"],
+body.theme-liquidglass [class*="bg-white/"] {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
 }
-body.theme-liquidglass button:active {
-    transform: scale(0.92);
+body.theme-liquidglass.light-theme [class*="bg-slate-500/"],
+body.theme-liquidglass.light-theme [class*="bg-white/"] {
+    background: rgba(255, 255, 255, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
 }
 
-body.theme-liquidglass .liquid-glass {
-    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+/* Semantic accent panels (amber = debt, rose = unpaid, emerald = paid, indigo
+   = neutral highlight) keep their colour coding — just get a touch more
+   fill so they read clearly against the frosted parent instead of looking
+   like a flat, disconnected sticker. */
+body.theme-liquidglass [class*="bg-amber-500/"],
+body.theme-liquidglass [class*="bg-indigo-500/"],
+body.theme-liquidglass [class*="bg-rose-500/"],
+body.theme-liquidglass [class*="bg-emerald-500/"] {
+    filter: saturate(1.2);
 }
-body.theme-liquidglass .liquid-glass:active {
-    transform: scale(0.985);
-=======
+
 /* Buttons: transform-only feedback (Hardware Acceleration Only rule — no
    backdrop-filter on small/numerous elements). */
 body.theme-liquidglass button,
@@ -422,16 +398,12 @@ body.theme-liquidglass.light-theme button:active {
 body.theme-liquidglass .bg-indigo-500,
 body.theme-liquidglass .bg-rose-500 {
     background: var(--lg-blue) !important;
->>>>>>> 31bdafc
 }
 
 body.theme-liquidglass ::-webkit-scrollbar-thumb {
     background: rgba(0, 122, 255, 0.45);
 }
 
-<<<<<<< HEAD
-/* --- Floating capsule dock + sliding "pill" (Liquid Glass tab-switch) --- */
-=======
 /* Over-scroll Elasticity: let inner scrollers rubber-band, but stop the
    bounce from propagating to the page chrome. */
 body.theme-liquidglass {
@@ -453,7 +425,6 @@ body.theme-liquidglass div[class*="bg-black/60"].flex {
 }
 
 /* ---------- Floating capsule dock + spring-physics sliding "pill" ---------- */
->>>>>>> 31bdafc
 body.theme-liquidglass .fixed.bottom-0.left-0.right-0 {
     padding-bottom: 18px !important;
 }
@@ -462,18 +433,6 @@ body.theme-liquidglass .fixed.bottom-0.left-0.right-0 {
 }
 body.theme-liquidglass .nav-bar-track {
     border-radius: 9999px !important;
-<<<<<<< HEAD
-    background: rgba(15, 16, 24, 0.4) !important;
-    backdrop-filter: blur(22px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(22px) saturate(140%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    box-shadow: 0 10px 28px 0 rgba(0, 0, 0, 0.40),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.20) !important;
-}
-body.theme-liquidglass.light-theme .nav-bar-track {
-    background: rgba(255, 255, 255, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.8) !important;
-=======
     background:
         linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 50%),
         var(--lg-glass-bg-strong) !important;
@@ -482,17 +441,12 @@ body.theme-liquidglass.light-theme .nav-bar-track {
     border: 1px solid var(--lg-glass-border) !important;
     box-shadow: 0 10px 28px 0 var(--lg-shadow),
                 inset 0 1px 0 0 var(--lg-highlight) !important;
->>>>>>> 31bdafc
 }
 
 .nav-btn {
     position: relative;
     z-index: 2;
-<<<<<<< HEAD
-    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
-=======
     transition: transform 0.25s cubic-bezier(0.34, 1.3, 0.64, 1);
->>>>>>> 31bdafc
 }
 .nav-btn:active {
     transform: scale(0.85);
@@ -510,14 +464,9 @@ body.theme-liquidglass.light-theme .nav-bar-track {
     left: 0;
     width: calc(100% / 6 - 6px);
     border-radius: 9999px;
-<<<<<<< HEAD
-    transform: translateX(0);
-    transition: transform 0.4s cubic-bezier(0.3, 1.15, 0.4, 1), width 0.4s cubic-bezier(0.3, 1.15, 0.4, 1);
-=======
     transform: translateX(var(--lg-pill-x, 0px)) scaleX(var(--lg-pill-stretch, 1));
     transition: transform 0.5s cubic-bezier(0.32, 1.55, 0.4, 1);
     transform-origin: center;
->>>>>>> 31bdafc
     pointer-events: none;
     will-change: transform;
     z-index: 1;
@@ -525,17 +474,7 @@ body.theme-liquidglass.light-theme .nav-bar-track {
 }
 body.theme-liquidglass .nav-pill {
     opacity: 1;
-<<<<<<< HEAD
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.30);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.30);
-}
-body.theme-liquidglass.light-theme .nav-pill {
-    background: rgba(255, 255, 255, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-=======
     background: linear-gradient(135deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 100%);
     border: 1px solid var(--lg-highlight);
     box-shadow: inset 0 1px 0 0 var(--lg-highlight);
->>>>>>> 31bdafc
 }
