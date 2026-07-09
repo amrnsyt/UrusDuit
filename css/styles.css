@@ -214,7 +214,7 @@ body.light-theme .ios-checkbox {
 }
 
 /* ============================================================
-   LIQUID GLASS THEME (iOS style) — full UI/UX overhaul
+   LIQUID GLASS THEME (iOS 26 style) — refined UI/UX overhaul
    ============================================================ */
 #liquidglass-wallpaper {
     position: fixed;
@@ -230,63 +230,108 @@ body.light-theme #liquidglass-wallpaper {
 #liquidglass-wallpaper .lg-blob {
     position: absolute;
     border-radius: 50%;
-    filter: blur(110px);
-    opacity: 0.30;
+    filter: blur(90px);
+    opacity: 0.40;
+    will-change: transform;
 }
-#liquidglass-wallpaper .lg-blob-1 { width: 360px; height: 360px; top: -80px; left: -60px; background: #4338ca; }
-#liquidglass-wallpaper .lg-blob-2 { width: 320px; height: 320px; top: 35%; right: -100px; background: #0369a1; }
-#liquidglass-wallpaper .lg-blob-3 { width: 300px; height: 300px; bottom: -90px; left: 15%; background: #9d174d; opacity: 0.22; }
+#liquidglass-wallpaper .lg-blob-1 {
+    width: 380px; height: 380px; top: -100px; left: -80px; background: #4f46e5;
+    animation: lgFloat1 16s ease-in-out infinite;
+}
+#liquidglass-wallpaper .lg-blob-2 {
+    width: 340px; height: 340px; top: 30%; right: -110px; background: #0ea5e9;
+    animation: lgFloat2 20s ease-in-out infinite;
+}
+#liquidglass-wallpaper .lg-blob-3 {
+    width: 320px; height: 320px; bottom: -100px; left: 10%; background: #db2777; opacity: 0.30;
+    animation: lgFloat3 18s ease-in-out infinite;
+}
+@keyframes lgFloat1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(50px, 60px) scale(1.18); }
+}
+@keyframes lgFloat2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-60px, 50px) scale(1.12); }
+}
+@keyframes lgFloat3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(40px, -50px) scale(1.14); }
+}
+@media (prefers-reduced-motion: reduce) {
+    #liquidglass-wallpaper .lg-blob { animation: none !important; }
+}
 #liquidglass-wallpaper::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(5, 7, 15, 0.6);
+    background: rgba(5, 7, 15, 0.55);
 }
 body.light-theme #liquidglass-wallpaper::after {
-    background: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.5);
 }
 
-/* Glass surfaces: soft frost, no motion, legible contrast */
+/* Glass surfaces: deep frost, specular edge light, layered depth */
 body.theme-liquidglass .liquid-glass,
 body.theme-liquidglass .glass-card-premium,
 body.theme-liquidglass .glass-input {
-    background: rgba(20, 22, 30, 0.42) !important;
-    backdrop-filter: blur(22px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(22px) saturate(140%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.16) !important;
-    box-shadow: 0 6px 24px 0 rgba(0, 0, 0, 0.30),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.18) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    backdrop-filter: blur(34px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(34px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.38),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 0 0 rgba(0, 0, 0, 0.18),
+        inset 1px 0 0 0 rgba(255, 255, 255, 0.06) !important;
+    transition: transform 0.25s cubic-bezier(0.25, 1.1, 0.4, 1), box-shadow 0.25s ease !important;
 }
 body.theme-liquidglass.light-theme .liquid-glass,
 body.theme-liquidglass.light-theme .glass-card-premium,
 body.theme-liquidglass.light-theme .glass-input {
-    background: rgba(255, 255, 255, 0.60) !important;
-    border: 1px solid rgba(255, 255, 255, 0.75) !important;
-    box-shadow: 0 6px 24px 0 rgba(15, 23, 42, 0.10),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.85) !important;
+    background: rgba(255, 255, 255, 0.55) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    box-shadow:
+        0 8px 28px 0 rgba(15, 23, 42, 0.12),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+        inset 0 -1px 0 0 rgba(15, 23, 42, 0.05) !important;
     color: #0f172a;
 }
 
 body.theme-liquidglass .rounded-xl,
 body.theme-liquidglass .rounded-2xl,
 body.theme-liquidglass .rounded-3xl {
-    border-radius: 24px !important;
+    border-radius: 26px !important;
 }
 
 body.theme-liquidglass button,
 body.theme-liquidglass .ios-checkbox {
-    backdrop-filter: blur(10px) saturate(140%);
-    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    transition: transform 0.15s cubic-bezier(0.25, 1.1, 0.4, 1), filter 0.15s ease;
+}
+body.theme-liquidglass button:active {
+    transform: scale(0.95);
+    filter: brightness(1.1);
+}
+
+/* Card press feedback (liquid squish) */
+body.theme-liquidglass .liquid-glass:active,
+body.theme-liquidglass .glass-card-premium:active {
+    transform: scale(0.985);
 }
 
 body.theme-liquidglass .fixed.bottom-0.left-0.right-0 .liquid-glass {
-    background: rgba(15, 16, 24, 0.45) !important;
-    backdrop-filter: blur(26px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(26px) saturate(160%) !important;
+    background: rgba(15, 16, 24, 0.5) !important;
+    backdrop-filter: blur(38px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(38px) saturate(180%) !important;
     border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    box-shadow:
+        0 -4px 24px 0 rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.28) !important;
 }
 body.theme-liquidglass.light-theme .fixed.bottom-0.left-0.right-0 .liquid-glass {
-    background: rgba(255, 255, 255, 0.62) !important;
+    background: rgba(255, 255, 255, 0.68) !important;
 }
 
 body.theme-liquidglass ::-webkit-scrollbar-thumb {
@@ -296,10 +341,16 @@ body.theme-liquidglass ::-webkit-scrollbar-thumb {
 /* --- Nav bar sliding "pill" (Liquid Glass tab-switch animation) --- */
 .nav-bar-track {
     position: relative;
+    overflow: hidden;
+    border-radius: inherit;
 }
 .nav-btn {
     position: relative;
     z-index: 2;
+    transition: transform 0.15s cubic-bezier(0.25, 1.1, 0.4, 1);
+}
+.nav-btn:active {
+    transform: scale(0.90);
 }
 .nav-pill {
     position: absolute;
@@ -309,20 +360,39 @@ body.theme-liquidglass ::-webkit-scrollbar-thumb {
     width: 0;
     border-radius: 9999px;
     transform: translateX(0);
-    transition: transform 0.42s cubic-bezier(0.22, 0.9, 0.24, 1), width 0.42s cubic-bezier(0.22, 0.9, 0.24, 1);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
     z-index: 1;
     opacity: 0;
+    overflow: hidden;
 }
 body.theme-liquidglass .nav-pill {
     opacity: 1;
-    background: rgba(255, 255, 255, 0.16);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.30);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+    background: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.08));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.45),
+        inset 0 -1px 0 0 rgba(0, 0, 0, 0.15),
+        0 2px 12px 0 rgba(0, 0, 0, 0.25);
+}
+body.theme-liquidglass .nav-pill::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -60%;
+    width: 40%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation: lgPillShine 2.6s ease-in-out infinite;
+}
+@keyframes lgPillShine {
+    0% { left: -60%; }
+    50%, 100% { left: 130%; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body.theme-liquidglass .nav-pill::after { animation: none !important; }
 }
 body.theme-liquidglass.light-theme .nav-pill {
-    background: rgba(255, 255, 255, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.5));
+    border: 1px solid rgba(255, 255, 255, 0.95);
 }
