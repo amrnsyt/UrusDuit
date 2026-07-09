@@ -1,0 +1,204 @@
+/* --- BASE & THEME CONFIGURATION --- */
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.4s ease, color 0.4s ease;
+}
+
+body.dark-theme {
+    background: linear-gradient(135deg, #05070f 0%, #0b0a1a 50%, #14051c 100%);
+    color: #f8fafc;
+}
+
+body.light-theme {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+    color: #0f172a; /* Softened from harsh pure black */
+}
+
+/* --- GLASSMORPHISM ADAPTATIONS --- */
+.liquid-glass {
+    transition: all 0.3s ease;
+}
+body.dark-theme .liquid-glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+}
+body.light-theme .liquid-glass {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 8px 24px 0 rgba(15, 23, 42, 0.08);
+}
+
+/* PREMIUM CARDS */
+body.dark-theme .glass-card-premium {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(236, 72, 153, 0.04));
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}
+body.light-theme .glass-card-premium {
+    background: linear-gradient(135deg, #f0fdf4, #eff6ff);
+    border: 1px solid #94a3b8;
+}
+
+/* --- INPUT CONTRAST FIXES --- */
+.glass-input {
+    transition: all 0.2s ease;
+}
+body.dark-theme .glass-input {
+    color: white;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+body.light-theme .glass-input {
+    color: #0f172a;
+    background: #ffffff;
+    border: 1px solid #94a3b8;
+}
+.glass-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+    border-color: #6366f1;
+}
+
+/* QUICK ADJUST STEPPER BUTTONS */
+.quick-adjust-btn {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 8px 0;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #e11d48;
+    background: rgba(225, 29, 72, 0.08);
+    border: 1px solid rgba(225, 29, 72, 0.18);
+    transition: all 0.15s ease;
+}
+.quick-adjust-btn:active {
+    transform: scale(0.93);
+    background: rgba(225, 29, 72, 0.18);
+}
+
+/* --- LIGHT MODE SPECIFIC TEXT RE-COLOR FOR HIGH CONTRAST --- */
+body.light-theme .text-slate-100,
+body.light-theme .text-slate-200,
+body.light-theme .text-slate-300,
+body.light-theme .text-slate-400,
+body.light-theme .text-slate-500,
+body.light-theme .text-slate-600,
+body.light-theme .text-slate-700,
+body.light-theme .text-slate-800,
+body.light-theme .text-slate-900,
+body.light-theme .text-gray-500,
+body.light-theme p, 
+body.light-theme span, 
+body.light-theme label {
+    color: #0f172a !important; 
+}
+
+body.light-theme .opacity-40,
+body.light-theme .opacity-50,
+body.light-theme .opacity-60,
+body.light-theme .opacity-70,
+body.light-theme .opacity-80,
+body.light-theme .opacity-90 {
+    opacity: 1 !important;
+    color: #334155 !important;
+}
+
+body.light-theme .bg-slate-500\/5, 
+body.light-theme .bg-slate-500\/10,
+body.light-theme .bg-white\/5 {
+    background-color: #f1f5f9 !important;
+}
+
+/* --- CUSTOM DROPDOWNS --- */
+.custom-options {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+}
+body.light-theme .custom-options > div {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #f1f5f9 !important;
+}
+body.light-theme .custom-options > div.sticky {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    opacity: 1 !important;
+}
+body.light-theme .custom-options > div:hover:not(.sticky) {
+    background-color: #f1f5f9 !important;
+}
+body.light-theme .custom-options > div.bg-indigo-50 {
+    background-color: #e0e7ff !important;
+    color: #4f46e5 !important;
+    font-weight: bold !important;
+}
+
+/* ========================================================= */
+/* --- NAVIGATION & TAB CONTENT LOGIC (THIS WAS MISSING) --- */
+/* ========================================================= */
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: iOSSheetUp 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); }
+
+@keyframes iOSSheetUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ios-spring-in {
+    animation: iosSpring 0.4s cubic-bezier(0.25, 1.1, 0.4, 1) forwards;
+}
+@keyframes iosSpring {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.nav-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: currentColor;
+    opacity: 0;
+    transition: all 0.2s ease;
+    margin-top: 3px;
+}
+.nav-btn.active-menu .nav-dot { opacity: 1; transform: scale(1.2); }
+
+/* --- IOS CHECKBOXES --- */
+.ios-checkbox {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #6366f1;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+body.light-theme .ios-checkbox {
+    border: 2px solid #0f172a;
+}
+.ios-checkbox:checked {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+.ios-checkbox:checked::after {
+    content: "\f00c";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: white;
+    font-size: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* --- CUSTOM SCROLLBAR --- */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 4px; }
