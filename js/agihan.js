@@ -5,6 +5,7 @@
 let idKomitmenAgihanAktif = null;
 let resitFailBase64Semasa = null;
 let resitFailMimeSemasa = null;
+let resitItemsSemasa = [];
 
 function pastikanAlokasiWujud() {
     const data = masterDatabase.bulan[bulanAktif];
@@ -134,11 +135,12 @@ function renderAgihanPage() {
         } else {
             resitHtml = senaraiResit.map(r => `
                 <div class="flex justify-between items-center bg-slate-500/5 border border-slate-500/10 px-2.5 py-1.5 rounded-lg text-[10px]">
-                    <div>
+                    <div class="min-w-0">
                         <span class="font-bold block">${r.kedai}</span>
                         <span class="opacity-60">${r.tarikh}</span>
+                        ${r.item && r.item.length > 0 ? `<span class="opacity-50 block truncate mt-0.5" title="${r.item.join(', ')}">${r.item.join(', ')}</span>` : ''}
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 shrink-0">
                         <span class="font-bold text-rose-600 dark:text-rose-400">- RM ${parseFloat(r.jumlah).toFixed(2)}</span>
                         <button onclick="mohonPadamResit(${item.id}, ${r.id})" class="text-rose-500 w-5 h-5 flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark text-[10px]"></i></button>
                     </div>
@@ -181,6 +183,7 @@ function bukaScanResitModal(komitmenId) {
     idKomitmenAgihanAktif = komitmenId;
     resitFailBase64Semasa = null;
     resitFailMimeSemasa = null;
+    resitItemsSemasa = [];
 
     const data = masterDatabase.bulan[bulanAktif];
     const item = data.komitmen.find(k => k.id === komitmenId);
@@ -193,6 +196,9 @@ function bukaScanResitModal(komitmenId) {
     document.getElementById('label-scan-resit').innerText = "Belum ada gambar resit dipilih.";
     document.getElementById('preview-resit-wrapper').classList.add('hidden');
     document.getElementById('scan-resit-status').classList.add('hidden');
+    document.getElementById('resit-items-wrapper').classList.add('hidden');
+    document.getElementById('resit-items-list').innerHTML = "";
+    document.getElementById('resit-jumlah-keseluruhan-info').innerText = "";
 
     const modal = document.getElementById('scan-resit-modal');
     modal.classList.remove('hidden');
@@ -223,6 +229,9 @@ function onFailResitDipilih(event) {
         previewImg.src = hasil;
         document.getElementById('preview-resit-wrapper').classList.remove('hidden');
         document.getElementById('label-scan-resit').innerText = fail.name || "Gambar resit dipilih.";
+        document.getElementById('resit-items-wrapper').classList.add('hidden');
+        document.getElementById('resit-items-list').innerHTML = "";
+        resitItemsSemasa = [];
 
         imbasResitDenganGemini();
     };
@@ -242,7 +251,7 @@ async function imbasResitDenganGemini() {
 
     // Cuba beberapa model secara berturutan sekiranya satu tidak tersedia untuk API key/akaun ini.
     const senaraiModel = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
-    const prompt = 'Anda ialah enjin OCR resit. Lihat gambar resit pembelian ini dengan teliti. Ekstrak DUA maklumat sahaja: (1) nama kedai/pasaraya, (2) jumlah TOTAL/JUMLAH BESAR akhir yang perlu dibayar (selepas rounding/pembundaran jika ada, biasanya baris terakhir berlabel "TOTAL", "JUMLAH", "GRAND TOTAL" atau "AMOUNT DUE"). Balas HANYA dalam format JSON tepat seperti ini, tanpa markdown dan tanpa teks lain: {"kedai": "Nama Kedai", "jumlah": 0.00}';
+    const prompt = 'Anda ialah enjin OCR resit. Lihat gambar resit pembelian ini dengan teliti. Ekstrak: (1) nama kedai/pasaraya, (2) SETIAP item/baris barang berserta harga masing-masing (nama ringkas dan harga selepas diskaun jika ada, abaikan baris subtotal/cukai/total), (3) jumlah TOTAL/JUMLAH BESAR akhir keseluruhan resit (selepas rounding jika ada). Balas HANYA dalam format JSON tepat seperti ini, tanpa markdown dan tanpa teks lain: {"kedai": "Nama Kedai", "items": [{"nama": "Nama Barang", "harga": 0.00}], "jumlah": 0.00}';
 
     let ralatTerakhir = null;
 
@@ -283,7 +292,15 @@ async function imbasResitDenganGemini() {
             const dataResit = JSON.parse(teksBersih);
 
             document.getElementById('input-resit-kedai').value = dataResit.kedai || "";
-            document.getElementById('input-resit-jumlah').value = dataResit.jumlah ? parseFloat(dataResit.jumlah).toFixed(2) : "";
+
+            const jumlahKeseluruhan = parseFloat(dataResit.jumlah) || 0;
+            const senaraiItem = Array.isArray(dataResit.items) ? dataResit.items : [];
+
+            if (senaraiItem.length > 0) {
+                renderResitItemsChecklist(senaraiItem, jumlahKeseluruhan);
+            } else {
+                document.getElementById('input-resit-jumlah').value = jumlahKeseluruhan ? jumlahKeseluruhan.toFixed(2) : "";
+            }
 
             paparToast("Imbasan Berjaya", "Sila semak maklumat sebelum simpan.", "sukses");
             statusEl.classList.add('hidden');
@@ -299,6 +316,45 @@ async function imbasResitDenganGemini() {
     statusEl.classList.add('hidden');
 }
 
+// --- SENARAI ITEM RESIT (untuk pilih bahagian sendiri sahaja) ---
+function renderResitItemsChecklist(items, jumlahKeseluruhan) {
+    resitItemsSemasa = items.map((it, idx) => ({
+        id: idx,
+        nama: it.nama || `Item ${idx + 1}`,
+        harga: parseFloat(it.harga) || 0
+    }));
+
+    const listEl = document.getElementById('resit-items-list');
+    listEl.innerHTML = resitItemsSemasa.map(it => `
+        <label class="flex items-center justify-between gap-2 bg-slate-500/5 border border-slate-500/10 px-2.5 py-1.5 rounded-lg cursor-pointer">
+            <span class="flex items-center gap-2 text-[10px] font-semibold truncate">
+                <input type="checkbox" class="ios-checkbox resit-item-checkbox shrink-0" data-id="${it.id}" checked onchange="kemaskiniJumlahDaripadaItem()">
+                <span class="truncate">${it.nama}</span>
+            </span>
+            <span class="text-[10px] font-bold opacity-70 shrink-0">RM ${it.harga.toFixed(2)}</span>
+        </label>
+    `).join('');
+
+    document.getElementById('resit-items-wrapper').classList.remove('hidden');
+    document.getElementById('resit-jumlah-keseluruhan-info').innerText = jumlahKeseluruhan ? `Jumlah Keseluruhan Resit: RM ${jumlahKeseluruhan.toFixed(2)}` : "";
+
+    kemaskiniJumlahDaripadaItem();
+}
+
+function pilihSemuaItemResit(pilihSemua) {
+    document.querySelectorAll('.resit-item-checkbox').forEach(cb => { cb.checked = pilihSemua; });
+    kemaskiniJumlahDaripadaItem();
+}
+
+function kemaskiniJumlahDaripadaItem() {
+    const checkboxDipilih = Array.from(document.querySelectorAll('.resit-item-checkbox')).filter(cb => cb.checked);
+    const total = checkboxDipilih.reduce((sum, cb) => {
+        const item = resitItemsSemasa.find(it => it.id === parseInt(cb.dataset.id));
+        return sum + (item ? item.harga : 0);
+    }, 0);
+    document.getElementById('input-resit-jumlah').value = total.toFixed(2);
+}
+
 function simpanResit() {
     if (idKomitmenAgihanAktif === null) return;
 
@@ -309,11 +365,19 @@ function simpanResit() {
         return paparToast("Maklumat Tidak Cukup", "Sila masukkan Nama Kedai dan Jumlah yang sah.", "amaran");
     }
 
+    const namaItemDipilih = Array.from(document.querySelectorAll('.resit-item-checkbox'))
+        .filter(cb => cb.checked)
+        .map(cb => {
+            const item = resitItemsSemasa.find(it => it.id === parseInt(cb.dataset.id));
+            return item ? item.nama : null;
+        })
+        .filter(Boolean);
+
     const alokasi = pastikanAlokasiWujud();
     if (!alokasi.resit[idKomitmenAgihanAktif]) alokasi.resit[idKomitmenAgihanAktif] = [];
 
     const tarikh = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
-    alokasi.resit[idKomitmenAgihanAktif].push({ id: Date.now(), kedai, jumlah, tarikh });
+    alokasi.resit[idKomitmenAgihanAktif].push({ id: Date.now(), kedai, jumlah, tarikh, item: namaItemDipilih });
 
     simpanKeLocalStorage();
     tutupScanResitModal();
