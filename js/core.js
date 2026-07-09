@@ -385,3 +385,50 @@ function tukarTab(tabName, element) {
     element.classList.remove('text-slate-400');
     element.classList.add('text-indigo-400', 'active-menu');
 }
+
+// --- NAVIGASI SWIPE ANTARA TAB ---
+const susunanTabSwipe = ['dashboard', 'gaji', 'komitmen', 'agihan', 'hutang', 'tetapan'];
+let swipeStartX = 0;
+let swipeStartY = 0;
+
+function adaModalTerbuka() {
+    return Array.from(document.querySelectorAll('[id$="-modal"]')).some(m => m.classList.contains('flex'));
+}
+
+function navigasiTabSwipe(arah) {
+    const tabAktifEl = document.querySelector('.tab-content.active');
+    if (!tabAktifEl) return;
+    const tabAktif = tabAktifEl.id.replace('tab-', '');
+    const indeksSemasa = susunanTabSwipe.indexOf(tabAktif);
+    if (indeksSemasa === -1) return;
+
+    const indeksBaru = indeksSemasa + arah;
+    if (indeksBaru < 0 || indeksBaru >= susunanTabSwipe.length) return;
+
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const btnBaru = navButtons[indeksBaru];
+    if (btnBaru) tukarTab(susunanTabSwipe[indeksBaru], btnBaru);
+}
+
+document.addEventListener('touchstart', function(e) {
+    if (adaModalTerbuka()) return;
+    swipeStartX = e.touches[0].clientX;
+    swipeStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+    if (adaModalTerbuka()) return;
+    const swipeEndX = e.changedTouches[0].clientX;
+    const swipeEndY = e.changedTouches[0].clientY;
+    const diffX = swipeEndX - swipeStartX;
+    const diffY = swipeEndY - swipeStartY;
+
+    const ambangMinimum = 65;
+    if (Math.abs(diffX) > ambangMinimum && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+        if (diffX > 0) {
+            navigasiTabSwipe(-1); // swipe kiri ke kanan -> tab sebelum ini
+        } else {
+            navigasiTabSwipe(1); // swipe kanan ke kiri -> tab seterusnya
+        }
+    }
+}, { passive: true });
