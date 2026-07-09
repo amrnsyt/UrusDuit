@@ -256,9 +256,9 @@ body.theme-liquidglass.light-theme {
     --lg-panel-border: rgba(0, 0, 0, 0.06);
     --lg-panel-shadow: rgba(40, 40, 90, 0.10);
 
-    --lg-glass-bg: rgba(255, 255, 255, 0.55);
-    --lg-glass-border: rgba(255, 255, 255, 0.75);
-    --lg-highlight: rgba(255, 255, 255, 0.9);
+    --lg-glass-bg: rgba(255, 255, 255, 0.92);
+    --lg-glass-border: rgba(255, 255, 255, 0.85);
+    --lg-highlight: rgba(255, 255, 255, 0.95);
     --lg-glass-shadow: rgba(40, 40, 90, 0.16);
 }
 
