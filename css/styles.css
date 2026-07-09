@@ -215,197 +215,154 @@ body.light-theme .ios-checkbox {
 
 
 /* ============================================================
-   LIQUID GLASS THEME v2 — iOS-accurate colour system + physics
+   LIQUID GLASS THEME v3 — full redesign
+
+   Core principle (how real iOS Liquid Glass is actually used):
+   glass is CHROME, not CONTENT. Apple reserves the frosted, refractive
+   material for the small set of persistent navigation/control surfaces
+   that float ABOVE content — tab bars, toolbars, sheets, alerts, toasts.
+   Ordinary content (lists, stat tiles, cards) sits on a plain, solid,
+   "grouped" surface underneath. Applying glass to *everything* (what the
+   last few passes did) is exactly why it looked inconsistent and noisy.
+
+   So this theme now has two tiers:
+     TIER A — "Grounded panel": solid, opaque, no blur. Used for regular
+              content cards/rows — the vast majority of the UI.
+     TIER B — "True glass": blur + saturate + specular rim + light-source
+              gradient. Reserved for the bottom nav bar, modals/sheets,
+              and toasts — the few things that float above content.
    ============================================================ */
 
-/* ---------- COLOR SYSTEM: exact specs, both modes ---------- */
 body.theme-liquidglass {
-    /* iOS core vibrants */
     --lg-blue: #007AFF;
     --lg-pink: #FF2D55;
     --lg-indigo: #5856D6;
     --lg-cyan: #32ADE6;
 
-    /* metallic grays (Apple system gray ramp) — for non-glass UI */
-    --lg-gray-1: #8E8E93;
-    --lg-gray-2: #636366;
-    --lg-gray-3: #48484A;
+    /* TIER A — grounded panel (solid "systemGroupedBackground" analogue) */
+    --lg-panel-bg: #1C1C1E;
+    --lg-panel-border: rgba(255, 255, 255, 0.08);
+    --lg-panel-shadow: rgba(8, 6, 20, 0.35);
 
-    /* frosted neutral base (dark) */
-    --lg-glass-bg: rgba(28, 28, 30, 0.42);      /* #1C1C1E @ 42% */
-    --lg-glass-bg-strong: rgba(28, 28, 30, 0.58);
+    /* TIER B — true glass (translucent, blurred) */
+    --lg-glass-bg: rgba(40, 40, 46, 0.55);
     --lg-glass-border: rgba(255, 255, 255, 0.22);
-    --lg-highlight: rgba(255, 255, 255, 0.6);    /* high-gloss top-left stroke */
-    --lg-shadow: rgba(20, 10, 40, 0.40);          /* shadow tinted with substrate hue, not pure black */
-    --lg-text-shadow: rgba(0, 0, 0, 0.35);
+    --lg-highlight: rgba(255, 255, 255, 0.55);
+    --lg-glass-shadow: rgba(8, 6, 20, 0.45);
 }
 body.theme-liquidglass.light-theme {
-    --lg-glass-bg: rgba(255, 255, 255, 0.22);     /* #FFFFFF @ 22% */
-    --lg-glass-bg-strong: rgba(255, 255, 255, 0.42);
-    --lg-glass-border: rgba(255, 255, 255, 0.65);
-    --lg-highlight: rgba(255, 255, 255, 0.85);
-    --lg-shadow: rgba(90, 70, 160, 0.16);
-    --lg-text-shadow: rgba(255, 255, 255, 0.6);
+    --lg-panel-bg: #FFFFFF;
+    --lg-panel-border: rgba(0, 0, 0, 0.06);
+    --lg-panel-shadow: rgba(40, 40, 90, 0.10);
+
+    --lg-glass-bg: rgba(255, 255, 255, 0.55);
+    --lg-glass-border: rgba(255, 255, 255, 0.75);
+    --lg-highlight: rgba(255, 255, 255, 0.9);
+    --lg-glass-shadow: rgba(40, 40, 90, 0.16);
 }
 
-/* ---------- LAYER 0: Vibrant substrate (wallpaper) — bakes once, static ---------- */
-/* Uses `filter: blur()` on solid shapes (cheap, pre-computable) rather than
-   `backdrop-filter` (expensive, must re-sample every frame). This is the
-   "bake static blurs" rule: the wallpaper never needs to react to anything
-   above it, so it is blurred once as a filter, not live-refracted. */
+/* ---------- Substrate: calm ambient wallpaper, not a rainbow wash ---------- */
+/* One soft light source, baked with `filter: blur()` on static shapes so it
+   never needs live re-sampling. */
 #liquidglass-wallpaper {
     position: fixed;
     inset: 0;
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
-    background: #05070f;
+    background: linear-gradient(160deg, #08080d 0%, #0d0c16 55%, #120e1a 100%);
 }
 body.light-theme #liquidglass-wallpaper {
-    background: #eef1f6;
+    background: linear-gradient(160deg, #f5f6fa 0%, #eef0f5 55%, #eceef4 100%);
 }
 #liquidglass-wallpaper .lg-blob {
     position: absolute;
     border-radius: 50%;
-    filter: blur(130px);
-    opacity: 0.16;
+    filter: blur(140px);
+    opacity: 0.14;
 }
-/* Kept to one harmonious cool family (indigo → blue → violet) instead of
-   mixing in a hot pink — that hue clash was what made the wash feel
-   gaudy/disjointed as the page scrolled past the fixed wallpaper. */
-#liquidglass-wallpaper .lg-blob-1 { width: 420px; height: 420px; top: -100px; left: -80px; background: var(--lg-indigo, #5856D6); }
-#liquidglass-wallpaper .lg-blob-2 { width: 380px; height: 380px; top: 40%; right: -120px; background: var(--lg-blue, #007AFF); }
-#liquidglass-wallpaper .lg-blob-3 { width: 360px; height: 360px; bottom: -110px; left: 10%; background: #5E5CE6; opacity: 0.12; }
-/* Scrim: much stronger now — the substrate should read as a faint ambient
-   tint behind the glass, not a colourful background in its own right. */
-#liquidglass-wallpaper::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(5, 7, 15, 0.78);
-}
-body.light-theme #liquidglass-wallpaper::after {
-    background: rgba(255, 255, 255, 0.82);
-}
+#liquidglass-wallpaper .lg-blob-1 { width: 460px; height: 460px; top: -140px; left: -100px; background: var(--lg-indigo, #5856D6); }
+#liquidglass-wallpaper .lg-blob-2 { width: 420px; height: 420px; bottom: -160px; right: -120px; background: var(--lg-blue, #007AFF); opacity: 0.10; }
+#liquidglass-wallpaper .lg-blob-3 { display: none; } /* third blob retired — two calm glows read cleaner than three competing hues */
 
-/* ---------- LAYER 1+2: Glass sheets (cards / sections / floating panels) ---------- */
-/* Backdrop Filter Overhaul: blur+saturate tuned per elevation instead of one
-   blanket value. Light-Source Angled Gradient adds the physical "hit by
-   light from upper-left" look on top of the blur. */
+/* ---------- TIER A: grounded content panels (the default) ---------- */
 body.theme-liquidglass .liquid-glass,
-body.theme-liquidglass .glass-card-premium,
+body.theme-liquidglass .glass-card-premium {
+    background: var(--lg-panel-bg) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid var(--lg-panel-border) !important;
+    box-shadow: 0 4px 16px 0 var(--lg-panel-shadow) !important;
+    transition: transform 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
 body.theme-liquidglass .glass-input {
-    background:
-        linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0) 100%),
-        var(--lg-glass-bg) !important;
-    backdrop-filter: blur(18px) saturate(150%) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(150%) !important;
-    border: 1px solid var(--lg-glass-border) !important;
-    box-shadow: 0 8px 24px 0 var(--lg-shadow),
-                inset 0 1px 0 0 var(--lg-highlight) !important;
-    text-shadow: 0 1px 3px var(--lg-text-shadow);
-    transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1), filter 0.2s ease;
+    background: rgba(255, 255, 255, 0.06) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid var(--lg-panel-border) !important;
+    box-shadow: none !important;
+}
+body.theme-liquidglass.light-theme .glass-input {
+    background: rgba(15, 23, 42, 0.045) !important;
 }
 body.theme-liquidglass.light-theme .liquid-glass,
 body.theme-liquidglass.light-theme .glass-card-premium,
 body.theme-liquidglass.light-theme .glass-input {
     color: #0f172a;
 }
-
-/* Specular Edge Tinting (the "micro-border"): a true 1px gradient ring that
-   catches light brightest at the top-left, fading toward the bottom-right —
-   built with a mask-composite trick so it costs one extra paint, no blur. */
-body.theme-liquidglass .liquid-glass,
-body.theme-liquidglass .glass-card-premium {
-    position: relative;
-}
-body.theme-liquidglass .liquid-glass::before,
-body.theme-liquidglass .glass-card-premium::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, var(--lg-highlight) 0%, rgba(255,255,255,0.05) 35%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.12) 100%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-}
-
-/* Dynamic Luminance Scaling: press state deepens/brightens the glass rather
-   than just scaling it — mimics glass reacting to touch. */
 body.theme-liquidglass .liquid-glass:active,
 body.theme-liquidglass .glass-card-premium:active {
-    transform: scale(0.985);
-    filter: brightness(1.08) saturate(1.1);
+    transform: scale(0.99);
 }
-body.theme-liquidglass.light-theme .liquid-glass:active,
-body.theme-liquidglass.light-theme .glass-card-premium:active {
-    filter: brightness(0.97) saturate(1.15);
+
+/* Nested "recessed" tiles/rows inside a panel (stat tiles, checklist rows,
+   history rows) — one shade up from the panel so they read as a distinct
+   but still solid, calm surface. No blur needed since the panel behind
+   them is already opaque. */
+body.theme-liquidglass [class*="bg-slate-500/"],
+body.theme-liquidglass [class*="bg-white/"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+body.theme-liquidglass.light-theme [class*="bg-slate-500/"],
+body.theme-liquidglass.light-theme [class*="bg-white/"] {
+    background: rgba(15, 23, 42, 0.035) !important;
+    border-color: rgba(15, 23, 42, 0.07) !important;
+}
+/* Semantic accent rows (amber = debt, rose = unpaid, emerald = paid) keep
+   their colour coding intact — just a touch of extra saturation so they
+   still pop against the now-neutral panels. */
+body.theme-liquidglass [class*="bg-amber-500/"],
+body.theme-liquidglass [class*="bg-indigo-500/"],
+body.theme-liquidglass [class*="bg-rose-500/"],
+body.theme-liquidglass [class*="bg-emerald-500/"] {
+    filter: saturate(1.15);
 }
 
 body.theme-liquidglass .rounded-xl,
 body.theme-liquidglass .rounded-2xl,
 body.theme-liquidglass .rounded-3xl {
-    border-radius: 24px !important;
+    border-radius: 22px !important;
 }
 
-/* Layered Translucency Hierarchy, part 2: many inner "recessed" panels
-   (stat tiles, checklist rows, history rows, badges) are plain low-opacity
-   Tailwind utility tints (bg-slate-500/5, bg-amber-500/5, bg-white/5, …).
-   Inside a frosted parent these render as flat, near-opaque, off-theme
-   patches — the "disgusting" inconsistency. Bring them into the same glass
-   language, one step down in elevation from the card that contains them. */
-/* Neutral recessed panels (stat tiles, checklist/history rows) → glass tint */
-body.theme-liquidglass [class*="bg-slate-500/"],
-body.theme-liquidglass [class*="bg-white/"] {
-    background: rgba(255, 255, 255, 0.07) !important;
-    border-color: rgba(255, 255, 255, 0.14) !important;
-}
-body.theme-liquidglass.light-theme [class*="bg-slate-500/"],
-body.theme-liquidglass.light-theme [class*="bg-white/"] {
-    background: rgba(255, 255, 255, 0.4) !important;
-    border-color: rgba(255, 255, 255, 0.6) !important;
-}
-
-/* Semantic accent panels (amber = debt, rose = unpaid, emerald = paid, indigo
-   = neutral highlight) keep their colour coding — just get a touch more
-   fill so they read clearly against the frosted parent instead of looking
-   like a flat, disconnected sticker. */
-body.theme-liquidglass [class*="bg-amber-500/"],
-body.theme-liquidglass [class*="bg-indigo-500/"],
-body.theme-liquidglass [class*="bg-rose-500/"],
-body.theme-liquidglass [class*="bg-emerald-500/"] {
-    filter: saturate(1.2);
-}
-
-/* Buttons: transform-only feedback (Hardware Acceleration Only rule — no
-   backdrop-filter on small/numerous elements). */
 body.theme-liquidglass button,
 body.theme-liquidglass .ios-checkbox {
-    transition: transform 0.25s cubic-bezier(0.34, 1.3, 0.64, 1), filter 0.2s ease;
+    transition: transform 0.22s cubic-bezier(0.34, 1.3, 0.64, 1), filter 0.2s ease;
 }
 body.theme-liquidglass button:active {
-    transform: scale(0.92);
-    filter: brightness(1.1);
+    transform: scale(0.93);
+    filter: brightness(1.08);
 }
 body.theme-liquidglass.light-theme button:active {
-    filter: brightness(0.95);
+    filter: brightness(0.96);
 }
-
-/* Accent buttons pick up the exact iOS vibrants */
 body.theme-liquidglass .bg-indigo-500,
 body.theme-liquidglass .bg-rose-500 {
     background: var(--lg-blue) !important;
 }
-
 body.theme-liquidglass ::-webkit-scrollbar-thumb {
     background: rgba(0, 122, 255, 0.45);
 }
-
-/* Over-scroll Elasticity: let inner scrollers rubber-band, but stop the
-   bounce from propagating to the page chrome. */
 body.theme-liquidglass {
     overscroll-behavior-y: none;
 }
@@ -414,14 +371,64 @@ body.theme-liquidglass .modal-scroll-area {
     overscroll-behavior: contain;
 }
 
-/* Contextual Blur Trigger: modal scrims fade + blur in on open rather than
-   snapping straight to full blur. */
+/* ============================================================
+   TIER B — true glass: bottom nav, modals/sheets, toast.
+   This is the ONLY place blur, specular rim and light-gradient live.
+   ============================================================ */
+body.theme-liquidglass .fixed.inset-0 > .liquid-glass,
+body.theme-liquidglass .fixed.inset-0 > .glass-card-premium,
+body.theme-liquidglass #toast-body,
+body.theme-liquidglass .nav-bar-track {
+    background:
+        linear-gradient(135deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0) 100%),
+        var(--lg-glass-bg) !important;
+    backdrop-filter: blur(24px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
+    border: 1px solid var(--lg-glass-border) !important;
+    box-shadow: 0 12px 32px 0 var(--lg-glass-shadow),
+                inset 0 1px 0 0 var(--lg-highlight) !important;
+    position: relative;
+}
+
+/* Specular micro-border: true 1px gradient ring, brightest top-left */
+body.theme-liquidglass .fixed.inset-0 > .liquid-glass::before,
+body.theme-liquidglass .fixed.inset-0 > .glass-card-premium::before,
+body.theme-liquidglass .nav-bar-track::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--lg-highlight) 0%, rgba(255,255,255,0.05) 35%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.10) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* Dynamic luminance on press — glass "catches the light" when touched */
+body.theme-liquidglass .fixed.inset-0 > .liquid-glass:active,
+body.theme-liquidglass .fixed.inset-0 > .glass-card-premium:active {
+    filter: brightness(1.1) saturate(1.1);
+}
+body.theme-liquidglass.light-theme .fixed.inset-0 > .liquid-glass:active,
+body.theme-liquidglass.light-theme .fixed.inset-0 > .glass-card-premium:active {
+    filter: brightness(0.97) saturate(1.15);
+}
+
+/* Sheet entrance keeps the spring feel, interruptible via transition (not
+   a keyframe lock) is not needed here since sheets don't retrigger mid-flight. */
+body.theme-liquidglass .ios-spring-in {
+    animation-timing-function: cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+/* Modal scrim fades + blurs in rather than snapping straight to full blur */
 @keyframes lgScrimIn {
     from { backdrop-filter: blur(0px); opacity: 0; }
     to   { backdrop-filter: blur(14px); opacity: 1; }
 }
 body.theme-liquidglass div[class*="bg-black/60"].flex {
-    animation: lgScrimIn 0.32s ease-out;
+    animation: lgScrimIn 0.3s ease-out;
 }
 
 /* ---------- Floating capsule dock + spring-physics sliding "pill" ---------- */
@@ -433,16 +440,7 @@ body.theme-liquidglass .fixed.bottom-0.left-0.right-0 {
 }
 body.theme-liquidglass .nav-bar-track {
     border-radius: 9999px !important;
-    background:
-        linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 50%),
-        var(--lg-glass-bg-strong) !important;
-    backdrop-filter: blur(22px) saturate(150%) !important;
-    -webkit-backdrop-filter: blur(22px) saturate(150%) !important;
-    border: 1px solid var(--lg-glass-border) !important;
-    box-shadow: 0 10px 28px 0 var(--lg-shadow),
-                inset 0 1px 0 0 var(--lg-highlight) !important;
 }
-
 .nav-btn {
     position: relative;
     z-index: 2;
@@ -452,11 +450,9 @@ body.theme-liquidglass .nav-bar-track {
     transform: scale(0.85);
 }
 
-/* Spring Physics + Squash-and-Stretch: the pill is positioned with
-   translateX ONLY (never left/width) so every frame is compositor-only.
-   Its width is a static CSS value (buttons are equal flex-1 slots), and
-   JS toggles --lg-pill-stretch briefly on tab-change for the liquid
-   "squash then settle" wobble. */
+/* Pill moves via translateX ONLY (compositor-only, no layout pass). Width
+   is a static value set once by JS (buttons are equal flex-1 slots), and
+   a brief scaleX "squash" gives the liquid wobble on tab change. */
 .nav-pill {
     position: absolute;
     top: 3px;
@@ -474,7 +470,7 @@ body.theme-liquidglass .nav-bar-track {
 }
 body.theme-liquidglass .nav-pill {
     opacity: 1;
-    background: linear-gradient(135deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 100%);
+    background: linear-gradient(135deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 100%);
     border: 1px solid var(--lg-highlight);
     box-shadow: inset 0 1px 0 0 var(--lg-highlight);
 }
