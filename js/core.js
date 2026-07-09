@@ -434,16 +434,64 @@ function kemaskiniPosisiNavPill(elTerpilih, animasiLantun) {
     const tengahBtn = btnAktif.offsetLeft + 3;
     pill.style.setProperty('--lg-pill-x', `${tengahBtn}px`);
 
-    // Squash-and-stretch: briefly stretch the pill along X, then let the
-    // spring cubic-bezier settle it back to scaleX(1) — a liquid "wobble".
+    // Squash-and-stretch: momentary scale3d(1.3, 0.95, 1) stretch, then let
+    // the 0.8s spring transition settle it back to scale3d(1,1,1) — a
+    // liquid mercury wobble.
     if(animasiLantun) {
-        pill.style.setProperty('--lg-pill-stretch', '1.35');
+        pill.style.setProperty('--lg-pill-stretch-x', '1.3');
+        pill.style.setProperty('--lg-pill-stretch-y', '0.95');
         clearTimeout(pill._lgStretchTimeout);
         pill._lgStretchTimeout = setTimeout(() => {
-            pill.style.setProperty('--lg-pill-stretch', '1');
-        }, 90);
+            pill.style.setProperty('--lg-pill-stretch-x', '1');
+            pill.style.setProperty('--lg-pill-stretch-y', '1');
+        }, 110);
     }
 }
+
+// --- REFRACTIVE PRESENTATION CARD: light glare shifts on phone tilt ---
+// Purely transform-driven (translate3d) so it stays compositor-only —
+// no layout/paint work on every deviceorientation tick.
+(function() {
+    let glareEl = null;
+    let rafPending = false;
+    let gammaSemasa = 0, betaSemasa = 0;
+
+    function terapkanGlare() {
+        rafPending = false;
+        if(!glareEl) glareEl = document.querySelector('#kad-baki-utama .lg-glare');
+        if(!glareEl) return;
+        const x = Math.max(-45, Math.min(45, gammaSemasa)) * 1.6;
+        const y = Math.max(-45, Math.min(45, betaSemasa - 45)) * 1.6;
+        glareEl.style.setProperty('--lg-glare-x', `${x}px`);
+        glareEl.style.setProperty('--lg-glare-y', `${y}px`);
+    }
+
+    function kendaliOrientasi(e) {
+        gammaSemasa = e.gamma || 0;
+        betaSemasa = e.beta || 0;
+        if(!rafPending) {
+            rafPending = true;
+            requestAnimationFrame(terapkanGlare);
+        }
+    }
+
+    function mulakanDengarOrientasi() {
+        if(typeof DeviceOrientationEvent === 'undefined') return;
+        if(typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // iOS 13+ requires a user gesture before granting sensor access.
+            document.addEventListener('click', function mintaKebenaranOrientasi() {
+                DeviceOrientationEvent.requestPermission().then(status => {
+                    if(status === 'granted') window.addEventListener('deviceorientation', kendaliOrientasi);
+                }).catch(() => {});
+                document.removeEventListener('click', mintaKebenaranOrientasi);
+            }, { once: true });
+        } else {
+            window.addEventListener('deviceorientation', kendaliOrientasi);
+        }
+    }
+
+    mulakanDengarOrientasi();
+})();
 
 window.addEventListener('resize', () => kemaskiniPosisiNavPill());
 
