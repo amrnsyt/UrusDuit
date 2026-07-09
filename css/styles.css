@@ -215,7 +215,7 @@ body.light-theme .ios-checkbox {
 
 
 /* ============================================================
-   LIQUID GLASS THEME (Apple-style refractive glass) — full overhaul
+   LIQUID GLASS THEME (iOS style) — performant, artifact-free
    ============================================================ */
 #liquidglass-wallpaper {
     position: fixed;
@@ -232,83 +232,72 @@ body.light-theme #liquidglass-wallpaper {
     position: absolute;
     border-radius: 50%;
     filter: blur(110px);
-    opacity: 0.32;
+    opacity: 0.28;
 }
 #liquidglass-wallpaper .lg-blob-1 { width: 380px; height: 380px; top: -80px; left: -60px; background: #4338ca; }
 #liquidglass-wallpaper .lg-blob-2 { width: 340px; height: 340px; top: 35%; right: -100px; background: #0369a1; }
-#liquidglass-wallpaper .lg-blob-3 { width: 320px; height: 320px; bottom: -90px; left: 15%; background: #9d174d; opacity: 0.24; }
+#liquidglass-wallpaper .lg-blob-3 { width: 320px; height: 320px; bottom: -90px; left: 15%; background: #9d174d; opacity: 0.20; }
 #liquidglass-wallpaper::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(5, 7, 15, 0.5);
+    background: rgba(5, 7, 15, 0.55);
 }
 body.light-theme #liquidglass-wallpaper::after {
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.5);
 }
 
-/* Refractive glass surfaces: real pixel distortion (SVG filter) + blur + specular rim */
+/* Glass surfaces: clean blur + saturate only (no SVG displacement — caused
+   colour-bleed artefacts and heavy GPU cost on mobile). */
 body.theme-liquidglass .liquid-glass,
 body.theme-liquidglass .glass-card-premium,
 body.theme-liquidglass .glass-input {
-    background: rgba(255, 255, 255, 0.10) !important;
-    backdrop-filter: url(#lg-refraction) blur(6px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.35) !important;
-    box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.35),
-                inset 0 1.5px 0 0 rgba(255, 255, 255, 0.55),
-                inset 0 -12px 20px -14px rgba(255, 255, 255, 0.12) !important;
+    background: rgba(22, 24, 32, 0.46) !important;
+    backdrop-filter: blur(18px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(130%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.20) !important;
 }
 body.theme-liquidglass.light-theme .liquid-glass,
 body.theme-liquidglass.light-theme .glass-card-premium,
 body.theme-liquidglass.light-theme .glass-input {
-    background: rgba(255, 255, 255, 0.38) !important;
-    backdrop-filter: url(#lg-refraction) blur(6px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.7) !important;
-    box-shadow: 0 10px 30px 0 rgba(15, 23, 42, 0.14),
-                inset 0 1.5px 0 0 rgba(255, 255, 255, 0.9) !important;
+    background: rgba(255, 255, 255, 0.58) !important;
+    border: 1px solid rgba(255, 255, 255, 0.75) !important;
+    box-shadow: 0 6px 20px 0 rgba(15, 23, 42, 0.10),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.85) !important;
     color: #0f172a;
-}
-
-/* Fallback for browsers without SVG-filter backdrop support (iOS Safari) */
-@supports not (backdrop-filter: url(#a)) {
-    body.theme-liquidglass .liquid-glass,
-    body.theme-liquidglass .glass-card-premium,
-    body.theme-liquidglass .glass-input {
-        backdrop-filter: blur(24px) saturate(170%) !important;
-        -webkit-backdrop-filter: blur(24px) saturate(170%) !important;
-    }
 }
 
 body.theme-liquidglass .rounded-xl,
 body.theme-liquidglass .rounded-2xl,
 body.theme-liquidglass .rounded-3xl {
-    border-radius: 26px !important;
+    border-radius: 24px !important;
 }
 
+/* Bounce feedback kept on transform only (cheap, GPU-compositor friendly).
+   Backdrop-filter removed from individual buttons — having it on dozens of
+   small buttons at once was the main cause of the sluggish feel. */
 body.theme-liquidglass button,
 body.theme-liquidglass .ios-checkbox {
-    backdrop-filter: blur(10px) saturate(150%);
-    -webkit-backdrop-filter: blur(10px) saturate(150%);
-    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, box-shadow 0.25s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
 body.theme-liquidglass button:active {
-    transform: scale(0.90);
+    transform: scale(0.92);
 }
 
 body.theme-liquidglass .liquid-glass {
-    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, box-shadow 0.25s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
 body.theme-liquidglass .liquid-glass:active {
-    transform: scale(0.97);
+    transform: scale(0.985);
 }
 
 body.theme-liquidglass ::-webkit-scrollbar-thumb {
     background: rgba(129, 140, 248, 0.5);
 }
 
-/* --- Floating capsule dock + springy sliding "pill" (Liquid Glass tab-switch) --- */
+/* --- Floating capsule dock + sliding "pill" (Liquid Glass tab-switch) --- */
 body.theme-liquidglass .fixed.bottom-0.left-0.right-0 {
     padding-bottom: 18px !important;
 }
@@ -317,24 +306,24 @@ body.theme-liquidglass .fixed.bottom-0.left-0.right-0 {
 }
 body.theme-liquidglass .nav-bar-track {
     border-radius: 9999px !important;
-    background: rgba(15, 16, 24, 0.35) !important;
-    backdrop-filter: url(#lg-refraction) blur(6px) saturate(170%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(170%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.30) !important;
-    box-shadow: 0 14px 38px 0 rgba(0, 0, 0, 0.45),
-                inset 0 1.5px 0 0 rgba(255, 255, 255, 0.30) !important;
+    background: rgba(15, 16, 24, 0.4) !important;
+    backdrop-filter: blur(22px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(140%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    box-shadow: 0 10px 28px 0 rgba(0, 0, 0, 0.40),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.20) !important;
 }
 body.theme-liquidglass.light-theme .nav-bar-track {
-    background: rgba(255, 255, 255, 0.45) !important;
-    border: 1px solid rgba(255, 255, 255, 0.85) !important;
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
 }
 .nav-btn {
     position: relative;
     z-index: 2;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
 .nav-btn:active {
-    transform: scale(0.82);
+    transform: scale(0.85);
 }
 .nav-pill {
     position: absolute;
@@ -343,22 +332,20 @@ body.theme-liquidglass.light-theme .nav-bar-track {
     left: 0;
     width: 0;
     border-radius: 9999px;
-    transform: translateX(0) scaleX(1);
-    transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateX(0);
+    transition: transform 0.4s cubic-bezier(0.3, 1.15, 0.4, 1), width 0.4s cubic-bezier(0.3, 1.15, 0.4, 1);
     pointer-events: none;
+    will-change: transform;
     z-index: 1;
     opacity: 0;
 }
 body.theme-liquidglass .nav-pill {
     opacity: 1;
-    background: rgba(255, 255, 255, 0.22);
-    backdrop-filter: url(#lg-refraction) blur(4px) saturate(180%);
-    -webkit-backdrop-filter: blur(14px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.45);
-    box-shadow: inset 0 1.5px 0 0 rgba(255, 255, 255, 0.55),
-                0 4px 14px 0 rgba(0, 0, 0, 0.25);
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.30);
 }
 body.theme-liquidglass.light-theme .nav-pill {
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.85);
 }
