@@ -175,6 +175,7 @@ window.onload = function() {
 
     terapkanTemaSemasa();
     muatDataBalanSemasa();
+    requestAnimationFrame(() => kemaskiniPosisiNavPill());
 };
 
 function janaSenaraiBulan() {
@@ -219,7 +220,9 @@ function terapkanTemaSemasa() {
     if(!masterDatabase.themeStyle) masterDatabase.themeStyle = "default";
     let kelasAsas = masterDatabase.isDarkMode ? "dark-theme dark min-h-screen flex flex-col justify-between pb-32" : "light-theme min-h-screen flex flex-col justify-between pb-32";
     if(masterDatabase.themeStyle === "liquidglass") kelasAsas += " theme-liquidglass";
-    document.body.className = kelasAsas;
+
+    document.body.classList.add('theme-switching');
+    document.body.className = kelasAsas + " theme-switching";
     document.documentElement.classList.toggle('dark', masterDatabase.isDarkMode);
 
     let wallpaperEl = document.getElementById('liquidglass-wallpaper');
@@ -227,11 +230,21 @@ function terapkanTemaSemasa() {
         if(!wallpaperEl) {
             wallpaperEl = document.createElement('div');
             wallpaperEl.id = 'liquidglass-wallpaper';
-            wallpaperEl.innerHTML = `<span class="lg-blob lg-blob-1"></span><span class="lg-blob lg-blob-2"></span><span class="lg-blob lg-blob-3"></span><span class="lg-blob lg-blob-4"></span>`;
+            wallpaperEl.innerHTML = `<span class="lg-blob lg-blob-1"></span><span class="lg-blob lg-blob-2"></span><span class="lg-blob lg-blob-3"></span>`;
             document.body.prepend(wallpaperEl);
         }
     } else if(wallpaperEl) {
         wallpaperEl.remove();
+    }
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            document.body.classList.remove('theme-switching');
+        });
+    });
+
+    if(typeof kemaskiniPosisiNavPill === 'function') {
+        requestAnimationFrame(() => kemaskiniPosisiNavPill());
     }
 }
 
@@ -401,7 +414,19 @@ function tukarTab(tabName, element) {
     });
     element.classList.remove('text-slate-400');
     element.classList.add('text-indigo-400', 'active-menu');
+    kemaskiniPosisiNavPill(element);
 }
+
+function kemaskiniPosisiNavPill(elTerpilih) {
+    const pill = document.getElementById('nav-pill');
+    if(!pill) return;
+    const btnAktif = elTerpilih || document.querySelector('.nav-btn.active-menu') || document.querySelector('.nav-btn');
+    if(!btnAktif) return;
+    pill.style.transform = `translateX(${btnAktif.offsetLeft}px)`;
+    pill.style.width = `${btnAktif.offsetWidth}px`;
+}
+
+window.addEventListener('resize', () => kemaskiniPosisiNavPill());
 
 // --- NAVIGASI SWIPE ANTARA TAB ---
 const susunanTabSwipe = ['dashboard', 'gaji', 'komitmen', 'agihan', 'hutang', 'tetapan'];
