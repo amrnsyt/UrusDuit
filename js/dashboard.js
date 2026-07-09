@@ -163,18 +163,34 @@ function toggleHutangCatPaid(kategori) {
     if(!data.bayaranHistory) data.bayaranHistory = [];
     
     if(data.hutangCatPaid[kategori]) {
-        let amt = 0;
-        const deltas = {};
         if(!data.hutang) data.hutang = [];
+
+        let totalAnsuranKategori = 0;
         data.hutang.forEach(h => {
             if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kategori) {
-                const baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
-                const payAmt = Math.min(h.ansuran, baki);
+                totalAnsuranKategori += (parseFloat(h.ansuran) || 0);
+            }
+        });
+
+        let sudahDibayarQuickPay = 0;
+        data.bayaranHistory.forEach(log => {
+            if(log.tipe === 'catHut' && log.targetId === kategori) sudahDibayarQuickPay += log.amaun;
+        });
+
+        let bakiPool = Math.max(0, totalAnsuranKategori - sudahDibayarQuickPay);
+
+        let amt = 0;
+        const deltas = {};
+        data.hutang.forEach(h => {
+            if(bakiPool > 0 && h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kategori) {
+                const bakiHutang = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                const payAmt = Math.min(bakiHutang, bakiPool);
                 if(payAmt > 0) {
                     h.sudahDibayar += payAmt;
                     if(h.sudahDibayar > h.jumlahAsal) h.sudahDibayar = h.jumlahAsal;
                     amt += payAmt;
                     deltas[h.id] = payAmt;
+                    bakiPool -= payAmt;
                 }
             }
         });
@@ -368,12 +384,15 @@ function padamSejarah(idLog) {
     } else if(logItem.tipe === 'catHutCheck') {
         if(data.hutangCatPaid) data.hutangCatPaid[logItem.targetId] = false;
         if(!data.hutang) data.hutang = [];
+        const deltas = (data.hutangCatPaidDeltas && data.hutangCatPaidDeltas[logItem.targetId]) || null;
         data.hutang.forEach(h => {
             if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === logItem.targetId) {
-                h.sudahDibayar -= h.ansuran;
+                const payAmt = deltas ? (deltas[h.id] || 0) : h.ansuran;
+                h.sudahDibayar -= payAmt;
                 if(h.sudahDibayar < 0) h.sudahDibayar = 0;
             }
         });
+        if(data.hutangCatPaidDeltas) delete data.hutangCatPaidDeltas[logItem.targetId];
     }
 
     data.bayaranHistory.splice(idxLog, 1);
