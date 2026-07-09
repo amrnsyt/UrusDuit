@@ -139,6 +139,7 @@ document.addEventListener('click', () => {
 // --- CORE APPLICATION LOGIC ---
 let masterDatabase = {
     isDarkMode: true,
+    themeStyle: "default",
     customKategori: [],
     customHutangKategori: [], 
     laporanTemplates: {},
@@ -215,8 +216,23 @@ function toggleDarkMode() {
     paparToast("Tema Paparan", masterDatabase.isDarkMode ? "Mod Gelap diaktifkan." : "Mod Terang diaktifkan.", "info");
 }
 function terapkanTemaSemasa() {
-    document.body.className = masterDatabase.isDarkMode ? "dark-theme dark min-h-screen flex flex-col justify-between pb-32" : "light-theme min-h-screen flex flex-col justify-between pb-32";
+    if(!masterDatabase.themeStyle) masterDatabase.themeStyle = "default";
+    let kelasAsas = masterDatabase.isDarkMode ? "dark-theme dark min-h-screen flex flex-col justify-between pb-32" : "light-theme min-h-screen flex flex-col justify-between pb-32";
+    if(masterDatabase.themeStyle === "liquidglass") kelasAsas += " theme-liquidglass";
+    document.body.className = kelasAsas;
     document.documentElement.classList.toggle('dark', masterDatabase.isDarkMode);
+
+    let wallpaperEl = document.getElementById('liquidglass-wallpaper');
+    if(masterDatabase.themeStyle === "liquidglass") {
+        if(!wallpaperEl) {
+            wallpaperEl = document.createElement('div');
+            wallpaperEl.id = 'liquidglass-wallpaper';
+            wallpaperEl.innerHTML = `<span class="lg-blob lg-blob-1"></span><span class="lg-blob lg-blob-2"></span><span class="lg-blob lg-blob-3"></span><span class="lg-blob lg-blob-4"></span>`;
+            document.body.prepend(wallpaperEl);
+        }
+    } else if(wallpaperEl) {
+        wallpaperEl.remove();
+    }
 }
 
 function bukaModal(tajuk, mesej, iconClass, wrapperClass, textIconClass, btnClass, iconBtnClass, btnText, action) {

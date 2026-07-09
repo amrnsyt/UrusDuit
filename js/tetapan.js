@@ -2,6 +2,40 @@
 // UrusDuit — TETAPAN (Settings) — Backup/Restore, Report Templates
 // ============================================================
 
+function bukaTemaModal() {
+    if(!masterDatabase.themeStyle) masterDatabase.themeStyle = "default";
+    paparPilihanTema();
+    document.getElementById('tema-modal').classList.remove('hidden');
+    document.getElementById('tema-modal').classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+}
+
+function tutupTemaModal() {
+    document.getElementById('tema-modal').classList.add('hidden');
+    document.getElementById('tema-modal').classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+}
+
+function paparPilihanTema() {
+    const temaAktif = masterDatabase.themeStyle || "default";
+    document.querySelectorAll('#tema-modal .tema-kad').forEach(kad => {
+        const temaKad = kad.dataset.tema;
+        const isActive = temaKad === temaAktif;
+        kad.classList.toggle('ring-2', isActive);
+        kad.classList.toggle('ring-indigo-500', isActive);
+        const check = kad.querySelector('.tema-check');
+        if(check) check.classList.toggle('hidden', !isActive);
+    });
+}
+
+function pilihTema(tema) {
+    masterDatabase.themeStyle = tema;
+    simpanKeLocalStorage();
+    terapkanTemaSemasa();
+    paparPilihanTema();
+    paparToast("Tema Ditukar", tema === "liquidglass" ? "Liquid Glass diaktifkan ✨" : "Tema Lalai diaktifkan.", "sukses");
+}
+
 function eksportData() {
     const dataStr = JSON.stringify(masterDatabase, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });

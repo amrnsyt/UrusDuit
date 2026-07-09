@@ -304,6 +304,57 @@
         </div>
     </div>
 
+    <div id="tema-modal" class="fixed inset-0 z-[10002] hidden items-center justify-center bg-black/60 backdrop-blur-md px-4" onclick="if(event.target === this) tutupTemaModal()">
+        <div class="liquid-glass glass-card-premium rounded-3xl p-6 w-full max-w-sm ios-spring-in flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl flex items-center justify-center bg-sky-500/15 text-sky-500 text-sm">
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] uppercase tracking-wider font-bold opacity-60">Tetapan</p>
+                        <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">Pilih Tema Paparan</h3>
+                    </div>
+                </div>
+                <button onclick="tutupTemaModal()" class="text-slate-400 hover:text-slate-200 cursor-pointer w-7 h-7 flex justify-center items-center rounded-full bg-slate-500/20 shrink-0">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div class="tema-kad relative rounded-2xl p-3.5 border border-slate-500/15 bg-slate-500/5 cursor-pointer transition-all" data-tema="default" onclick="pilihTema('default')">
+                    <div class="tema-check hidden absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-check"></i></div>
+                    <div class="w-full h-14 rounded-xl mb-2.5 bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-600/30 flex items-center px-3 gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/10"></div>
+                        <div class="flex-1 space-y-1">
+                            <div class="h-1.5 w-3/4 rounded bg-white/20"></div>
+                            <div class="h-1.5 w-1/2 rounded bg-white/10"></div>
+                        </div>
+                    </div>
+                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200">Tema Lalai (Default)</h4>
+                    <p class="text-[9px] opacity-60 mt-0.5">UI, animasi &amp; kelegapan semasa aplikasi.</p>
+                </div>
+
+                <div class="tema-kad relative rounded-2xl p-3.5 border border-slate-500/15 cursor-pointer transition-all overflow-hidden" data-tema="liquidglass" onclick="pilihTema('liquidglass')" style="background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(56,189,248,0.15), rgba(236,72,153,0.15));">
+                    <div class="tema-check hidden absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[9px] z-10"><i class="fa-solid fa-check"></i></div>
+                    <div class="w-full h-14 rounded-xl mb-2.5 flex items-center px-3 gap-2 border border-white/30" style="background: linear-gradient(120deg, rgba(129,140,248,0.35), rgba(56,189,248,0.25), rgba(244,114,182,0.3)); backdrop-filter: blur(6px);">
+                        <div class="w-8 h-8 rounded-lg bg-white/25 border border-white/40 shadow-inner"></div>
+                        <div class="flex-1 space-y-1">
+                            <div class="h-1.5 w-3/4 rounded bg-white/50"></div>
+                            <div class="h-1.5 w-1/2 rounded bg-white/30"></div>
+                        </div>
+                    </div>
+                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100">✨ Liquid Glass</h4>
+                    <p class="text-[9px] opacity-70 mt-0.5">Kaca telus, sinaran cahaya &amp; wallpaper dinamik gaya iOS 27.</p>
+                </div>
+            </div>
+
+            <button onclick="tutupTemaModal()" class="mt-4 w-full py-2.5 rounded-xl text-xs font-bold bg-slate-500/10 hover:bg-slate-500/20 text-slate-500 dark:text-slate-300 cursor-pointer transition-all">
+                Tutup
+            </button>
+        </div>
+    </div>
+
     <div id="hutang-form-modal" class="fixed inset-0 z-[10002] hidden items-center justify-center bg-black/60 backdrop-blur-md px-4" onclick="if(event.target === this) tutupBorangHutangModal()">
         <div class="liquid-glass glass-card-premium rounded-3xl p-6 w-full max-w-sm ios-spring-in flex flex-col max-h-[85vh] overflow-y-auto custom-scrollbar">
             <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-500/10">
@@ -741,6 +792,15 @@
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-500/10 opacity-70">STABLE</span>
                 </div>
                 
+                <hr class="border-slate-500/10">
+
+                <div>
+                    <h4 class="text-xs font-bold text-sky-600 dark:text-sky-400 mb-2">Tema Aplikasi</h4>
+                    <button onclick="bukaTemaModal()" class="w-full py-2.5 bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 rounded-xl text-xs font-bold cursor-pointer hover:bg-sky-500/20 transition-colors flex items-center justify-center">
+                        <i class="fa-solid fa-palette mr-2"></i> Pilih Tema Paparan
+                    </button>
+                </div>
+
                 <hr class="border-slate-500/10">
 
                 <div>

@@ -202,3 +202,104 @@ body.light-theme .ios-checkbox {
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 4px; }
+
+/* ============================================================
+   LIQUID GLASS THEME (iOS 27 style) — full UI/UX overhaul
+   ============================================================ */
+#liquidglass-wallpaper {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background: radial-gradient(circle at 15% 10%, #1e1b4b 0%, #05070f 45%),
+                radial-gradient(circle at 85% 90%, #0c1f2e 0%, transparent 55%);
+}
+body.light-theme #liquidglass-wallpaper {
+    background: radial-gradient(circle at 15% 10%, #dbeafe 0%, #f8fafc 45%),
+                radial-gradient(circle at 85% 90%, #fce7f3 0%, transparent 55%);
+}
+#liquidglass-wallpaper .lg-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.55;
+    animation: lgFloat 18s ease-in-out infinite alternate;
+}
+#liquidglass-wallpaper .lg-blob-1 { width: 340px; height: 340px; top: -60px; left: -60px; background: #6366f1; animation-duration: 22s; }
+#liquidglass-wallpaper .lg-blob-2 { width: 300px; height: 300px; top: 30%; right: -80px; background: #38bdf8; animation-duration: 26s; animation-delay: -6s; }
+#liquidglass-wallpaper .lg-blob-3 { width: 260px; height: 260px; bottom: -60px; left: 20%; background: #ec4899; animation-duration: 20s; animation-delay: -3s; }
+#liquidglass-wallpaper .lg-blob-4 { width: 220px; height: 220px; bottom: 15%; right: 15%; background: #f59e0b; animation-duration: 24s; animation-delay: -9s; opacity: 0.35; }
+
+@keyframes lgFloat {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(30px, -25px) scale(1.08); }
+    100% { transform: translate(-25px, 20px) scale(0.96); }
+}
+
+/* Glass surfaces: deeper blur, specular highlight, refractive border */
+body.theme-liquidglass .liquid-glass,
+body.theme-liquidglass .glass-card-premium,
+body.theme-liquidglass .glass-input {
+    background: rgba(255, 255, 255, 0.10) !important;
+    backdrop-filter: blur(38px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(38px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+                inset 0 0 20px 0 rgba(255, 255, 255, 0.05) !important;
+    position: relative;
+    overflow: hidden;
+}
+body.theme-liquidglass.light-theme .liquid-glass,
+body.theme-liquidglass.light-theme .glass-card-premium,
+body.theme-liquidglass.light-theme .glass-input {
+    background: rgba(255, 255, 255, 0.45) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.12),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.8) !important;
+    color: #0f172a;
+}
+body.theme-liquidglass .liquid-glass::before,
+body.theme-liquidglass .glass-card-premium::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.18) 48%, rgba(255,255,255,0.05) 55%, transparent 70%);
+    pointer-events: none;
+    animation: lgSheen 7s ease-in-out infinite;
+}
+@keyframes lgSheen {
+    0%   { transform: translate(-15%, -15%) rotate(0deg); opacity: 0.6; }
+    50%  { transform: translate(15%, 15%) rotate(3deg); opacity: 1; }
+    100% { transform: translate(-15%, -15%) rotate(0deg); opacity: 0.6; }
+}
+
+body.theme-liquidglass .rounded-xl,
+body.theme-liquidglass .rounded-2xl,
+body.theme-liquidglass .rounded-3xl {
+    border-radius: 26px !important;
+}
+
+body.theme-liquidglass button,
+body.theme-liquidglass .ios-checkbox {
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+
+body.theme-liquidglass .fixed.bottom-0.left-0.right-0 .liquid-glass {
+    background: rgba(20, 20, 30, 0.35) !important;
+    backdrop-filter: blur(40px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+body.theme-liquidglass.light-theme .fixed.bottom-0.left-0.right-0 .liquid-glass {
+    background: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.theme-liquidglass ::-webkit-scrollbar-thumb {
+    background: rgba(129, 140, 248, 0.5);
+}
