@@ -405,13 +405,11 @@ function salinDataBulanLepas() {
     );
 }
 
-let lgTabSwitchLocked = false;
+let _tukarTabTerakhir = 0;
 function tukarTab(tabName, element) {
-    // Debounce Input: ignore rapid repeat taps on the same tab mid-transition
-    if (lgTabSwitchLocked && element.classList.contains('active-menu')) return;
-    lgTabSwitchLocked = true;
-    clearTimeout(window._lgTabDebounce);
-    window._lgTabDebounce = setTimeout(() => { lgTabSwitchLocked = false; }, 180);
+    const sekarang = Date.now();
+    if(sekarang - _tukarTabTerakhir < 180) return; // debounce: ignore rapid double-taps
+    _tukarTabTerakhir = sekarang;
 
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     document.getElementById('tab-' + tabName).classList.add('active');
@@ -421,115 +419,33 @@ function tukarTab(tabName, element) {
     });
     element.classList.remove('text-slate-400');
     element.classList.add('text-indigo-400', 'active-menu');
-    kemaskiniPosisiNavPill(element);
-    lgHaptic(10);
+    kemaskiniPosisiNavPill(element, true);
 }
 
-// --- LIQUID GLASS: interruptible spring physics for the nav pill (Fluid Gestures) ---
-const navPillSpring = { pos: null, vel: 0, target: 0, widthPos: null, widthVel: 0, widthTarget: 0, raf: null };
-function lgSpringStep() {
-    const stiffness = 0.24, damping = 0.60;
-    const posForce = (navPillSpring.target - navPillSpring.pos) * stiffness;
-    navPillSpring.vel = (navPillSpring.vel + posForce) * damping;
-    navPillSpring.pos += navPillSpring.vel;
-
-    const widthForce = (navPillSpring.widthTarget - navPillSpring.widthPos) * stiffness;
-    navPillSpring.widthVel = (navPillSpring.widthVel + widthForce) * damping;
-    navPillSpring.widthPos += navPillSpring.widthVel;
-
+function kemaskiniPosisiNavPill(elTerpilih, animasiLantun) {
     const pill = document.getElementById('nav-pill');
-    if (pill) {
-        // Squash and Stretch: pill stretches along travel direction while in motion
-        const stretch = Math.min(Math.abs(navPillSpring.vel) * 0.018, 0.16);
-        pill.style.transform = `translateX(${navPillSpring.pos}px) scaleX(${1 + stretch}) scaleY(${1 - stretch * 0.55})`;
-        pill.style.width = `${Math.max(navPillSpring.widthPos, 0)}px`;
-    }
-
-    const settled = Math.abs(navPillSpring.vel) < 0.03 && Math.abs(navPillSpring.target - navPillSpring.pos) < 0.3 &&
-                     Math.abs(navPillSpring.widthVel) < 0.03 && Math.abs(navPillSpring.widthTarget - navPillSpring.widthPos) < 0.3;
-    if (settled) {
-        navPillSpring.raf = null;
-        navPillSpring.pos = navPillSpring.target;
-        navPillSpring.widthPos = navPillSpring.widthTarget;
-        if (pill) {
-            pill.style.transform = `translateX(${navPillSpring.pos}px) scaleX(1) scaleY(1)`;
-            pill.style.width = `${navPillSpring.widthPos}px`;
-        }
-    } else {
-        navPillSpring.raf = requestAnimationFrame(lgSpringStep);
-    }
-}
-function kemaskiniPosisiNavPill(elTerpilih) {
-    const pill = document.getElementById('nav-pill');
-    if (!pill) return;
+    if(!pill) return;
     const btnAktif = elTerpilih || document.querySelector('.nav-btn.active-menu') || document.querySelector('.nav-btn');
-    if (!btnAktif) return;
+    if(!btnAktif) return;
 
-    navPillSpring.target = btnAktif.offsetLeft;
-    navPillSpring.widthTarget = btnAktif.offsetWidth;
+    // Width is synced instantly (no transition attached to it) so it never
+    // animates/lays out repeatedly — only transform (translateX/scaleX) animates.
+    pill.style.width = `${btnAktif.offsetWidth - 6}px`;
+    const tengahBtn = btnAktif.offsetLeft + 3;
+    pill.style.setProperty('--lg-pill-x', `${tengahBtn}px`);
 
-    if (navPillSpring.pos === null) {
-        // First run: snap instantly, no spring-in from zero
-        navPillSpring.pos = navPillSpring.target;
-        navPillSpring.widthPos = navPillSpring.widthTarget;
-        pill.style.transform = `translateX(${navPillSpring.pos}px)`;
-        pill.style.width = `${navPillSpring.widthPos}px`;
-        return;
+    // Squash-and-stretch: briefly stretch the pill along X, then let the
+    // spring cubic-bezier settle it back to scaleX(1) — a liquid "wobble".
+    if(animasiLantun) {
+        pill.style.setProperty('--lg-pill-stretch', '1.35');
+        clearTimeout(pill._lgStretchTimeout);
+        pill._lgStretchTimeout = setTimeout(() => {
+            pill.style.setProperty('--lg-pill-stretch', '1');
+        }, 90);
     }
-    if (!navPillSpring.raf) navPillSpring.raf = requestAnimationFrame(lgSpringStep);
 }
 
 window.addEventListener('resize', () => kemaskiniPosisiNavPill());
-
-// --- LIQUID GLASS: Web-safe haptics (guarded, respects theme + device support) ---
-function lgHaptic(durationMs) {
-    if (masterDatabase.themeStyle !== 'liquidglass') return;
-    if (typeof navigator === 'undefined' || !navigator.vibrate) return;
-    try { navigator.vibrate(durationMs || 8); } catch (e) { /* silent */ }
-}
-document.addEventListener('click', function(e) {
-    if (masterDatabase.themeStyle !== 'liquidglass') return;
-    if (e.target.closest('.nav-btn')) return; // already handled in tukarTab
-    if (e.target.closest('button')) lgHaptic(6);
-}, { passive: true });
-
-// --- LIQUID GLASS: Contextual Blur Trigger (flatten heavy backdrop-filter while flinging, debounced restore) ---
-let lgScrollDebounce = null;
-window.addEventListener('scroll', function() {
-    if (masterDatabase.themeStyle !== 'liquidglass') return;
-    document.body.classList.add('lg-scrolling');
-    clearTimeout(lgScrollDebounce);
-    lgScrollDebounce = setTimeout(() => document.body.classList.remove('lg-scrolling'), 160);
-}, { passive: true });
-
-// --- LIQUID GLASS: Over-scroll rubber-band elasticity on the main content wrapper ---
-(function() {
-    let startY = 0, isPulling = false;
-    document.addEventListener('touchstart', function(e) {
-        if (masterDatabase.themeStyle !== 'liquidglass' || adaModalTerbuka()) return;
-        startY = e.touches[0].clientY;
-        isPulling = false;
-    }, { passive: true });
-    document.addEventListener('touchmove', function(e) {
-        if (masterDatabase.themeStyle !== 'liquidglass' || adaModalTerbuka()) return;
-        const wrap = document.getElementById('lg-elastic-wrap');
-        if (!wrap || window.scrollY > 0) return;
-        const dy = e.touches[0].clientY - startY;
-        if (dy > 0) {
-            isPulling = true;
-            const damped = Math.min(dy * 0.32, 64);
-            wrap.style.transition = 'none';
-            wrap.style.transform = `translateY(${damped}px)`;
-        }
-    }, { passive: true });
-    document.addEventListener('touchend', function() {
-        const wrap = document.getElementById('lg-elastic-wrap');
-        if (!wrap || !isPulling) return;
-        wrap.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-        wrap.style.transform = 'translateY(0)';
-        isPulling = false;
-    }, { passive: true });
-})();
 
 // --- NAVIGASI SWIPE ANTARA TAB ---
 const susunanTabSwipe = ['dashboard', 'gaji', 'komitmen', 'agihan', 'hutang', 'tetapan'];

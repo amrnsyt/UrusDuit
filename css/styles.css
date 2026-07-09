@@ -213,13 +213,46 @@ body.light-theme .ios-checkbox {
     animation: none !important;
 }
 
+
 /* ============================================================
-<<<<<<< HEAD
-   LIQUID GLASS THEME (iOS 26 style) — refined UI/UX overhaul
-=======
-   LIQUID GLASS THEME (iOS style) — performant, artifact-free
->>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
+   LIQUID GLASS THEME v2 — iOS-accurate colour system + physics
    ============================================================ */
+
+/* ---------- COLOR SYSTEM: exact specs, both modes ---------- */
+body.theme-liquidglass {
+    /* iOS core vibrants */
+    --lg-blue: #007AFF;
+    --lg-pink: #FF2D55;
+    --lg-indigo: #5856D6;
+    --lg-cyan: #32ADE6;
+
+    /* metallic grays (Apple system gray ramp) — for non-glass UI */
+    --lg-gray-1: #8E8E93;
+    --lg-gray-2: #636366;
+    --lg-gray-3: #48484A;
+
+    /* frosted neutral base (dark) */
+    --lg-glass-bg: rgba(28, 28, 30, 0.42);      /* #1C1C1E @ 42% */
+    --lg-glass-bg-strong: rgba(28, 28, 30, 0.58);
+    --lg-glass-border: rgba(255, 255, 255, 0.22);
+    --lg-highlight: rgba(255, 255, 255, 0.6);    /* high-gloss top-left stroke */
+    --lg-shadow: rgba(20, 10, 40, 0.40);          /* shadow tinted with substrate hue, not pure black */
+    --lg-text-shadow: rgba(0, 0, 0, 0.35);
+}
+body.theme-liquidglass.light-theme {
+    --lg-glass-bg: rgba(255, 255, 255, 0.22);     /* #FFFFFF @ 22% */
+    --lg-glass-bg-strong: rgba(255, 255, 255, 0.42);
+    --lg-glass-border: rgba(255, 255, 255, 0.65);
+    --lg-highlight: rgba(255, 255, 255, 0.85);
+    --lg-shadow: rgba(90, 70, 160, 0.16);
+    --lg-text-shadow: rgba(255, 255, 255, 0.6);
+}
+
+/* ---------- LAYER 0: Vibrant substrate (wallpaper) — bakes once, static ---------- */
+/* Uses `filter: blur()` on solid shapes (cheap, pre-computable) rather than
+   `backdrop-filter` (expensive, must re-sample every frame). This is the
+   "bake static blurs" rule: the wallpaper never needs to react to anything
+   above it, so it is blurred once as a filter, not live-refracted. */
 #liquidglass-wallpaper {
     position: fixed;
     inset: 0;
@@ -234,46 +267,13 @@ body.light-theme #liquidglass-wallpaper {
 #liquidglass-wallpaper .lg-blob {
     position: absolute;
     border-radius: 50%;
-<<<<<<< HEAD
-    filter: blur(90px);
-    opacity: 0.40;
-    will-change: transform;
-}
-#liquidglass-wallpaper .lg-blob-1 {
-    width: 380px; height: 380px; top: -100px; left: -80px; background: #4f46e5;
-    animation: lgFloat1 16s ease-in-out infinite;
-}
-#liquidglass-wallpaper .lg-blob-2 {
-    width: 340px; height: 340px; top: 30%; right: -110px; background: #0ea5e9;
-    animation: lgFloat2 20s ease-in-out infinite;
-}
-#liquidglass-wallpaper .lg-blob-3 {
-    width: 320px; height: 320px; bottom: -100px; left: 10%; background: #db2777; opacity: 0.30;
-    animation: lgFloat3 18s ease-in-out infinite;
-}
-@keyframes lgFloat1 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(50px, 60px) scale(1.18); }
-}
-@keyframes lgFloat2 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(-60px, 50px) scale(1.12); }
-}
-@keyframes lgFloat3 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(40px, -50px) scale(1.14); }
-}
-@media (prefers-reduced-motion: reduce) {
-    #liquidglass-wallpaper .lg-blob { animation: none !important; }
-}
-=======
     filter: blur(110px);
-    opacity: 0.28;
+    opacity: 0.4;
 }
-#liquidglass-wallpaper .lg-blob-1 { width: 380px; height: 380px; top: -80px; left: -60px; background: #4338ca; }
-#liquidglass-wallpaper .lg-blob-2 { width: 340px; height: 340px; top: 35%; right: -100px; background: #0369a1; }
-#liquidglass-wallpaper .lg-blob-3 { width: 320px; height: 320px; bottom: -90px; left: 15%; background: #9d174d; opacity: 0.20; }
->>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
+#liquidglass-wallpaper .lg-blob-1 { width: 380px; height: 380px; top: -80px; left: -60px; background: var(--lg-indigo, #5856D6); }
+#liquidglass-wallpaper .lg-blob-2 { width: 340px; height: 340px; top: 35%; right: -100px; background: var(--lg-blue, #007AFF); }
+#liquidglass-wallpaper .lg-blob-3 { width: 320px; height: 320px; bottom: -90px; left: 15%; background: var(--lg-pink, #FF2D55); opacity: 0.30; }
+/* Scrim: keeps the vivid substrate from wrecking text contrast (WCAG mapping) */
 #liquidglass-wallpaper::after {
     content: "";
     position: absolute;
@@ -281,270 +281,167 @@ body.light-theme #liquidglass-wallpaper {
     background: rgba(5, 7, 15, 0.55);
 }
 body.light-theme #liquidglass-wallpaper::after {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.55);
 }
 
-<<<<<<< HEAD
-/* Glass surfaces: real refraction (SVG displacement) + specular edge light */
+/* ---------- LAYER 1+2: Glass sheets (cards / sections / floating panels) ---------- */
+/* Backdrop Filter Overhaul: blur+saturate tuned per elevation instead of one
+   blanket value. Light-Source Angled Gradient adds the physical "hit by
+   light from upper-left" look on top of the blur. */
 body.theme-liquidglass .liquid-glass,
 body.theme-liquidglass .glass-card-premium,
 body.theme-liquidglass .glass-input {
-    position: relative;
-    background: rgba(255, 255, 255, 0.06) !important;
-    backdrop-filter: url(#lg-glass-distort) blur(28px) saturate(190%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
-    border: none !important;
-    box-shadow:
-        0 8px 32px 0 rgba(0, 0, 0, 0.38),
-        inset 0 -1px 0 0 rgba(0, 0, 0, 0.18) !important;
-    transform: translateZ(0);
-    will-change: transform, backdrop-filter;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background 0.2s ease !important;
-=======
-/* Glass surfaces: clean blur + saturate only (no SVG displacement — caused
-   colour-bleed artefacts and heavy GPU cost on mobile). */
-body.theme-liquidglass .liquid-glass,
-body.theme-liquidglass .glass-card-premium,
-body.theme-liquidglass .glass-input {
-    background: rgba(22, 24, 32, 0.46) !important;
-    backdrop-filter: blur(18px) saturate(130%) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(130%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.28),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.20) !important;
->>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
+    background:
+        linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0) 100%),
+        var(--lg-glass-bg) !important;
+    backdrop-filter: blur(18px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(150%) !important;
+    border: 1px solid var(--lg-glass-border) !important;
+    box-shadow: 0 8px 24px 0 var(--lg-shadow),
+                inset 0 1px 0 0 var(--lg-highlight) !important;
+    text-shadow: 0 1px 3px var(--lg-text-shadow);
+    transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1), filter 0.2s ease;
 }
 body.theme-liquidglass.light-theme .liquid-glass,
 body.theme-liquidglass.light-theme .glass-card-premium,
 body.theme-liquidglass.light-theme .glass-input {
-<<<<<<< HEAD
-    background: rgba(255, 255, 255, 0.55) !important;
-    box-shadow:
-        0 8px 28px 0 rgba(15, 23, 42, 0.12),
-        inset 0 -1px 0 0 rgba(15, 23, 42, 0.05) !important;
     color: #0f172a;
 }
 
-/* Specular micro-border: a thin light-catching rim instead of a flat border */
+/* Specular Edge Tinting (the "micro-border"): a true 1px gradient ring that
+   catches light brightest at the top-left, fading toward the bottom-right —
+   built with a mask-composite trick so it costs one extra paint, no blur. */
+body.theme-liquidglass .liquid-glass,
+body.theme-liquidglass .glass-card-premium {
+    position: relative;
+}
 body.theme-liquidglass .liquid-glass::before,
-body.theme-liquidglass .glass-card-premium::before,
-body.theme-liquidglass .glass-input::before {
+body.theme-liquidglass .glass-card-premium::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    pointer-events: none;
-    background: conic-gradient(from 220deg at 28% 18%,
-        rgba(255,255,255,0.95) 0deg,
-        rgba(255,255,255,0.08) 70deg,
-        rgba(255,255,255,0.04) 180deg,
-        rgba(255,255,255,0.45) 300deg,
-        rgba(255,255,255,0.95) 360deg);
+    background: linear-gradient(135deg, var(--lg-highlight) 0%, rgba(255,255,255,0.05) 35%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.12) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    opacity: 0.9;
-}
-body.theme-liquidglass.light-theme .liquid-glass::before,
-body.theme-liquidglass.light-theme .glass-card-premium::before,
-body.theme-liquidglass.light-theme .glass-input::before {
-    background: conic-gradient(from 220deg at 28% 18%,
-        rgba(255,255,255,1) 0deg,
-        rgba(255,255,255,0.25) 70deg,
-        rgba(15,23,42,0.06) 180deg,
-        rgba(255,255,255,0.7) 300deg,
-        rgba(255,255,255,1) 360deg);
+    pointer-events: none;
 }
 
-=======
-    background: rgba(255, 255, 255, 0.58) !important;
-    border: 1px solid rgba(255, 255, 255, 0.75) !important;
-    box-shadow: 0 6px 20px 0 rgba(15, 23, 42, 0.10),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.85) !important;
-    color: #0f172a;
+/* Dynamic Luminance Scaling: press state deepens/brightens the glass rather
+   than just scaling it — mimics glass reacting to touch. */
+body.theme-liquidglass .liquid-glass:active,
+body.theme-liquidglass .glass-card-premium:active {
+    transform: scale(0.985);
+    filter: brightness(1.08) saturate(1.1);
+}
+body.theme-liquidglass.light-theme .liquid-glass:active,
+body.theme-liquidglass.light-theme .glass-card-premium:active {
+    filter: brightness(0.97) saturate(1.15);
 }
 
->>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 body.theme-liquidglass .rounded-xl,
 body.theme-liquidglass .rounded-2xl,
 body.theme-liquidglass .rounded-3xl {
     border-radius: 24px !important;
 }
 
-/* Bounce feedback kept on transform only (cheap, GPU-compositor friendly).
-   Backdrop-filter removed from individual buttons — having it on dozens of
-   small buttons at once was the main cause of the sluggish feel. */
+/* Buttons: transform-only feedback (Hardware Acceleration Only rule — no
+   backdrop-filter on small/numerous elements). */
 body.theme-liquidglass button,
 body.theme-liquidglass .ios-checkbox {
-<<<<<<< HEAD
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
-    transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease;
-}
-body.theme-liquidglass button:active {
-    transform: scale(0.94) scaleY(0.9);
-    filter: brightness(1.12);
-}
-
-/* Card press feedback (liquid squash & stretch) */
-body.theme-liquidglass .liquid-glass:active,
-body.theme-liquidglass .glass-card-premium:active {
-    transform: scale(0.983) scaleY(0.978) translateZ(0);
-}
-
-/* Contextual blur trigger: flatten heavy glass while flinging/scrolling fast, restore on rest */
-body.theme-liquidglass.lg-scrolling .liquid-glass:not(.nav-bar-track),
-body.theme-liquidglass.lg-scrolling .glass-card-premium {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(18, 20, 28, 0.9) !important;
-    transition: none !important;
-}
-body.theme-liquidglass.light-theme.lg-scrolling .liquid-glass:not(.nav-bar-track),
-body.theme-liquidglass.light-theme.lg-scrolling .glass-card-premium {
-    background: rgba(255, 255, 255, 0.92) !important;
-}
-
-body.theme-liquidglass .fixed.bottom-0.left-0.right-0 .liquid-glass {
-    background: rgba(15, 16, 24, 0.5) !important;
-    backdrop-filter: url(#lg-glass-distort) blur(32px) saturate(190%) !important;
-    -webkit-backdrop-filter: blur(32px) saturate(190%) !important;
-    box-shadow:
-        0 -4px 24px 0 rgba(0, 0, 0, 0.35),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.28) !important;
-}
-body.theme-liquidglass.light-theme .fixed.bottom-0.left-0.right-0 .liquid-glass {
-    background: rgba(255, 255, 255, 0.68) !important;
-=======
-    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+    transition: transform 0.25s cubic-bezier(0.34, 1.3, 0.64, 1), filter 0.2s ease;
 }
 body.theme-liquidglass button:active {
     transform: scale(0.92);
+    filter: brightness(1.1);
+}
+body.theme-liquidglass.light-theme button:active {
+    filter: brightness(0.95);
 }
 
-body.theme-liquidglass .liquid-glass {
-    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
-}
-body.theme-liquidglass .liquid-glass:active {
-    transform: scale(0.985);
->>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
+/* Accent buttons pick up the exact iOS vibrants */
+body.theme-liquidglass .bg-indigo-500,
+body.theme-liquidglass .bg-rose-500 {
+    background: var(--lg-blue) !important;
 }
 
 body.theme-liquidglass ::-webkit-scrollbar-thumb {
-    background: rgba(129, 140, 248, 0.5);
+    background: rgba(0, 122, 255, 0.45);
 }
 
-<<<<<<< HEAD
-/* Overscroll rubber-band elasticity */
-#lg-elastic-wrap {
-    transform: translateZ(0);
-=======
-/* --- Floating capsule dock + sliding "pill" (Liquid Glass tab-switch) --- */
+/* Over-scroll Elasticity: let inner scrollers rubber-band, but stop the
+   bounce from propagating to the page chrome. */
+body.theme-liquidglass {
+    overscroll-behavior-y: none;
+}
+body.theme-liquidglass .custom-scrollbar,
+body.theme-liquidglass .modal-scroll-area {
+    overscroll-behavior: contain;
+}
+
+/* Contextual Blur Trigger: modal scrims fade + blur in on open rather than
+   snapping straight to full blur. */
+@keyframes lgScrimIn {
+    from { backdrop-filter: blur(0px); opacity: 0; }
+    to   { backdrop-filter: blur(14px); opacity: 1; }
+}
+body.theme-liquidglass div[class*="bg-black/60"].flex {
+    animation: lgScrimIn 0.32s ease-out;
+}
+
+/* ---------- Floating capsule dock + spring-physics sliding "pill" ---------- */
 body.theme-liquidglass .fixed.bottom-0.left-0.right-0 {
     padding-bottom: 18px !important;
->>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 }
-body.theme-liquidglass {
-    overscroll-behavior-y: contain;
-}
-
-/* --- Nav bar sliding "pill" (Liquid Glass tab-switch, driven by JS spring physics) --- */
 .nav-bar-track {
     position: relative;
-<<<<<<< HEAD
-    overflow: hidden;
-    border-radius: inherit;
-=======
 }
 body.theme-liquidglass .nav-bar-track {
     border-radius: 9999px !important;
-    background: rgba(15, 16, 24, 0.4) !important;
-    backdrop-filter: blur(22px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(22px) saturate(140%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    box-shadow: 0 10px 28px 0 rgba(0, 0, 0, 0.40),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.20) !important;
+    background:
+        linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 50%),
+        var(--lg-glass-bg-strong) !important;
+    backdrop-filter: blur(22px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(150%) !important;
+    border: 1px solid var(--lg-glass-border) !important;
+    box-shadow: 0 10px 28px 0 var(--lg-shadow),
+                inset 0 1px 0 0 var(--lg-highlight) !important;
 }
-body.theme-liquidglass.light-theme .nav-bar-track {
-    background: rgba(255, 255, 255, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.8) !important;
->>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
-}
+
 .nav-btn {
     position: relative;
     z-index: 2;
-<<<<<<< HEAD
-    transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.nav-btn:active {
-    transform: scale(0.88);
-=======
-    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+    transition: transform 0.25s cubic-bezier(0.34, 1.3, 0.64, 1);
 }
 .nav-btn:active {
     transform: scale(0.85);
->>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 }
+
+/* Spring Physics + Squash-and-Stretch: the pill is positioned with
+   translateX ONLY (never left/width) so every frame is compositor-only.
+   Its width is a static CSS value (buttons are equal flex-1 slots), and
+   JS toggles --lg-pill-stretch briefly on tab-change for the liquid
+   "squash then settle" wobble. */
 .nav-pill {
     position: absolute;
     top: 3px;
     bottom: 3px;
     left: 0;
-    width: 0;
+    width: calc(100% / 6 - 6px);
     border-radius: 9999px;
-<<<<<<< HEAD
-=======
-    transform: translateX(0);
-    transition: transform 0.4s cubic-bezier(0.3, 1.15, 0.4, 1), width 0.4s cubic-bezier(0.3, 1.15, 0.4, 1);
->>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
+    transform: translateX(var(--lg-pill-x, 0px)) scaleX(var(--lg-pill-stretch, 1));
+    transition: transform 0.5s cubic-bezier(0.32, 1.55, 0.4, 1);
+    transform-origin: center;
     pointer-events: none;
     will-change: transform;
     z-index: 1;
     opacity: 0;
-    overflow: hidden;
-    will-change: transform, width;
-    transition: opacity 0.2s ease, background 0.2s ease;
 }
 body.theme-liquidglass .nav-pill {
     opacity: 1;
-<<<<<<< HEAD
-    background: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.08));
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.45),
-        inset 0 -1px 0 0 rgba(0, 0, 0, 0.15),
-        0 2px 12px 0 rgba(0, 0, 0, 0.25);
-}
-body.theme-liquidglass .nav-pill::after {
-    content: "";
-    position: absolute;
-    top: 0; left: -60%;
-    width: 40%; height: 100%;
-    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
-    animation: lgPillShine 2.6s ease-in-out infinite;
-}
-@keyframes lgPillShine {
-    0% { left: -60%; }
-    50%, 100% { left: 130%; }
-}
-@media (prefers-reduced-motion: reduce) {
-    body.theme-liquidglass .nav-pill::after { animation: none !important; }
-    body.theme-liquidglass .liquid-glass,
-    body.theme-liquidglass .glass-card-premium { transition: none !important; }
-}
-body.theme-liquidglass.light-theme .nav-pill {
-    background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.5));
-    border: 1px solid rgba(255, 255, 255, 0.95);
-=======
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.30);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.30);
-}
-body.theme-liquidglass.light-theme .nav-pill {
-    background: rgba(255, 255, 255, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.85);
->>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
+    background: linear-gradient(135deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.08) 100%);
+    border: 1px solid var(--lg-highlight);
+    box-shadow: inset 0 1px 0 0 var(--lg-highlight);
 }
