@@ -157,32 +157,43 @@ function toggleKomitmenPaid(id) {
 function toggleHutangCatPaid(kategori) {
     const data = masterDatabase.bulan[bulanAktif];
     if(!data.hutangCatPaid) data.hutangCatPaid = {};
+    if(!data.hutangCatPaidDeltas) data.hutangCatPaidDeltas = {};
     data.hutangCatPaid[kategori] = !data.hutangCatPaid[kategori];
     
     if(!data.bayaranHistory) data.bayaranHistory = [];
     
     if(data.hutangCatPaid[kategori]) {
         let amt = 0;
+        const deltas = {};
         if(!data.hutang) data.hutang = [];
         data.hutang.forEach(h => {
             if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kategori) {
-                amt += h.ansuran;
-                h.sudahDibayar += h.ansuran;
-                if(h.sudahDibayar > h.jumlahAsal) h.sudahDibayar = h.jumlahAsal;
+                const baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                const payAmt = Math.min(h.ansuran, baki);
+                if(payAmt > 0) {
+                    h.sudahDibayar += payAmt;
+                    if(h.sudahDibayar > h.jumlahAsal) h.sudahDibayar = h.jumlahAsal;
+                    amt += payAmt;
+                    deltas[h.id] = payAmt;
+                }
             }
         });
+        data.hutangCatPaidDeltas[kategori] = deltas;
         const t = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
         data.bayaranHistory.push({
             id: Date.now(), tipe: 'catHutCheck', targetId: kategori, nama: `Ansuran Hutang: ${kategori}`, amaun: amt, tarikh: t
         });
     } else {
         if(!data.hutang) data.hutang = [];
+        const deltas = data.hutangCatPaidDeltas[kategori] || {};
         data.hutang.forEach(h => {
             if(h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kategori) {
-                h.sudahDibayar -= h.ansuran;
+                const payAmt = deltas[h.id] || 0;
+                h.sudahDibayar -= payAmt;
                 if(h.sudahDibayar < 0) h.sudahDibayar = 0;
             }
         });
+        delete data.hutangCatPaidDeltas[kategori];
         data.bayaranHistory = data.bayaranHistory.filter(h => !(h.tipe === 'catHutCheck' && h.targetId === kategori));
     }
     
