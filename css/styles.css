@@ -214,7 +214,11 @@ body.light-theme .ios-checkbox {
 }
 
 /* ============================================================
+<<<<<<< HEAD
    LIQUID GLASS THEME (iOS 26 style) — refined UI/UX overhaul
+=======
+   LIQUID GLASS THEME (iOS style) — performant, artifact-free
+>>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
    ============================================================ */
 #liquidglass-wallpaper {
     position: fixed;
@@ -230,6 +234,7 @@ body.light-theme #liquidglass-wallpaper {
 #liquidglass-wallpaper .lg-blob {
     position: absolute;
     border-radius: 50%;
+<<<<<<< HEAD
     filter: blur(90px);
     opacity: 0.40;
     will-change: transform;
@@ -261,6 +266,14 @@ body.light-theme #liquidglass-wallpaper {
 @media (prefers-reduced-motion: reduce) {
     #liquidglass-wallpaper .lg-blob { animation: none !important; }
 }
+=======
+    filter: blur(110px);
+    opacity: 0.28;
+}
+#liquidglass-wallpaper .lg-blob-1 { width: 380px; height: 380px; top: -80px; left: -60px; background: #4338ca; }
+#liquidglass-wallpaper .lg-blob-2 { width: 340px; height: 340px; top: 35%; right: -100px; background: #0369a1; }
+#liquidglass-wallpaper .lg-blob-3 { width: 320px; height: 320px; bottom: -90px; left: 15%; background: #9d174d; opacity: 0.20; }
+>>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 #liquidglass-wallpaper::after {
     content: "";
     position: absolute;
@@ -271,6 +284,7 @@ body.light-theme #liquidglass-wallpaper::after {
     background: rgba(255, 255, 255, 0.5);
 }
 
+<<<<<<< HEAD
 /* Glass surfaces: real refraction (SVG displacement) + specular edge light */
 body.theme-liquidglass .liquid-glass,
 body.theme-liquidglass .glass-card-premium,
@@ -286,10 +300,24 @@ body.theme-liquidglass .glass-input {
     transform: translateZ(0);
     will-change: transform, backdrop-filter;
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background 0.2s ease !important;
+=======
+/* Glass surfaces: clean blur + saturate only (no SVG displacement — caused
+   colour-bleed artefacts and heavy GPU cost on mobile). */
+body.theme-liquidglass .liquid-glass,
+body.theme-liquidglass .glass-card-premium,
+body.theme-liquidglass .glass-input {
+    background: rgba(22, 24, 32, 0.46) !important;
+    backdrop-filter: blur(18px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(130%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.20) !important;
+>>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 }
 body.theme-liquidglass.light-theme .liquid-glass,
 body.theme-liquidglass.light-theme .glass-card-premium,
 body.theme-liquidglass.light-theme .glass-input {
+<<<<<<< HEAD
     background: rgba(255, 255, 255, 0.55) !important;
     box-shadow:
         0 8px 28px 0 rgba(15, 23, 42, 0.12),
@@ -329,14 +357,27 @@ body.theme-liquidglass.light-theme .glass-input::before {
         rgba(255,255,255,1) 360deg);
 }
 
+=======
+    background: rgba(255, 255, 255, 0.58) !important;
+    border: 1px solid rgba(255, 255, 255, 0.75) !important;
+    box-shadow: 0 6px 20px 0 rgba(15, 23, 42, 0.10),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.85) !important;
+    color: #0f172a;
+}
+
+>>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 body.theme-liquidglass .rounded-xl,
 body.theme-liquidglass .rounded-2xl,
 body.theme-liquidglass .rounded-3xl {
-    border-radius: 26px !important;
+    border-radius: 24px !important;
 }
 
+/* Bounce feedback kept on transform only (cheap, GPU-compositor friendly).
+   Backdrop-filter removed from individual buttons — having it on dozens of
+   small buttons at once was the main cause of the sluggish feel. */
 body.theme-liquidglass button,
 body.theme-liquidglass .ios-checkbox {
+<<<<<<< HEAD
     backdrop-filter: blur(12px) saturate(160%);
     -webkit-backdrop-filter: blur(12px) saturate(160%);
     transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.15s ease;
@@ -375,15 +416,34 @@ body.theme-liquidglass .fixed.bottom-0.left-0.right-0 .liquid-glass {
 }
 body.theme-liquidglass.light-theme .fixed.bottom-0.left-0.right-0 .liquid-glass {
     background: rgba(255, 255, 255, 0.68) !important;
+=======
+    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+body.theme-liquidglass button:active {
+    transform: scale(0.92);
+}
+
+body.theme-liquidglass .liquid-glass {
+    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+body.theme-liquidglass .liquid-glass:active {
+    transform: scale(0.985);
+>>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 }
 
 body.theme-liquidglass ::-webkit-scrollbar-thumb {
     background: rgba(129, 140, 248, 0.5);
 }
 
+<<<<<<< HEAD
 /* Overscroll rubber-band elasticity */
 #lg-elastic-wrap {
     transform: translateZ(0);
+=======
+/* --- Floating capsule dock + sliding "pill" (Liquid Glass tab-switch) --- */
+body.theme-liquidglass .fixed.bottom-0.left-0.right-0 {
+    padding-bottom: 18px !important;
+>>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 }
 body.theme-liquidglass {
     overscroll-behavior-y: contain;
@@ -392,16 +452,39 @@ body.theme-liquidglass {
 /* --- Nav bar sliding "pill" (Liquid Glass tab-switch, driven by JS spring physics) --- */
 .nav-bar-track {
     position: relative;
+<<<<<<< HEAD
     overflow: hidden;
     border-radius: inherit;
+=======
+}
+body.theme-liquidglass .nav-bar-track {
+    border-radius: 9999px !important;
+    background: rgba(15, 16, 24, 0.4) !important;
+    backdrop-filter: blur(22px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(140%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    box-shadow: 0 10px 28px 0 rgba(0, 0, 0, 0.40),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.20) !important;
+}
+body.theme-liquidglass.light-theme .nav-bar-track {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+>>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 }
 .nav-btn {
     position: relative;
     z-index: 2;
+<<<<<<< HEAD
     transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .nav-btn:active {
     transform: scale(0.88);
+=======
+    transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.nav-btn:active {
+    transform: scale(0.85);
+>>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 }
 .nav-pill {
     position: absolute;
@@ -410,7 +493,13 @@ body.theme-liquidglass {
     left: 0;
     width: 0;
     border-radius: 9999px;
+<<<<<<< HEAD
+=======
+    transform: translateX(0);
+    transition: transform 0.4s cubic-bezier(0.3, 1.15, 0.4, 1), width 0.4s cubic-bezier(0.3, 1.15, 0.4, 1);
+>>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
     pointer-events: none;
+    will-change: transform;
     z-index: 1;
     opacity: 0;
     overflow: hidden;
@@ -419,6 +508,7 @@ body.theme-liquidglass {
 }
 body.theme-liquidglass .nav-pill {
     opacity: 1;
+<<<<<<< HEAD
     background: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.08));
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -448,4 +538,13 @@ body.theme-liquidglass .nav-pill::after {
 body.theme-liquidglass.light-theme .nav-pill {
     background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.5));
     border: 1px solid rgba(255, 255, 255, 0.95);
+=======
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.30);
+}
+body.theme-liquidglass.light-theme .nav-pill {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+>>>>>>> 7bffcfb (Automated sync: 2026-07-09 16:16:21)
 }
