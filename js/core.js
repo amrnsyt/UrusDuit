@@ -405,7 +405,12 @@ function salinDataBulanLepas() {
     );
 }
 
+let _tukarTabTerakhir = 0;
 function tukarTab(tabName, element) {
+    const sekarang = Date.now();
+    if(sekarang - _tukarTabTerakhir < 180) return; // debounce: ignore rapid double-taps
+    _tukarTabTerakhir = sekarang;
+
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     document.getElementById('tab-' + tabName).classList.add('active');
     document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -414,16 +419,30 @@ function tukarTab(tabName, element) {
     });
     element.classList.remove('text-slate-400');
     element.classList.add('text-indigo-400', 'active-menu');
-    kemaskiniPosisiNavPill(element);
+    kemaskiniPosisiNavPill(element, true);
 }
 
-function kemaskiniPosisiNavPill(elTerpilih) {
+function kemaskiniPosisiNavPill(elTerpilih, animasiLantun) {
     const pill = document.getElementById('nav-pill');
     if(!pill) return;
     const btnAktif = elTerpilih || document.querySelector('.nav-btn.active-menu') || document.querySelector('.nav-btn');
     if(!btnAktif) return;
-    pill.style.transform = `translateX(${btnAktif.offsetLeft}px)`;
-    pill.style.width = `${btnAktif.offsetWidth}px`;
+
+    // Width is synced instantly (no transition attached to it) so it never
+    // animates/lays out repeatedly — only transform (translateX/scaleX) animates.
+    pill.style.width = `${btnAktif.offsetWidth - 6}px`;
+    const tengahBtn = btnAktif.offsetLeft + 3;
+    pill.style.setProperty('--lg-pill-x', `${tengahBtn}px`);
+
+    // Squash-and-stretch: briefly stretch the pill along X, then let the
+    // spring cubic-bezier settle it back to scaleX(1) — a liquid "wobble".
+    if(animasiLantun) {
+        pill.style.setProperty('--lg-pill-stretch', '1.35');
+        clearTimeout(pill._lgStretchTimeout);
+        pill._lgStretchTimeout = setTimeout(() => {
+            pill.style.setProperty('--lg-pill-stretch', '1');
+        }, 90);
+    }
 }
 
 window.addEventListener('resize', () => kemaskiniPosisiNavPill());

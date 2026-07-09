@@ -28,7 +28,12 @@ function paparPilihanTema() {
     });
 }
 
+let _pilihTemaTerakhir = 0;
 function pilihTema(tema) {
+    const sekarang = Date.now();
+    if(sekarang - _pilihTemaTerakhir < 250) return;
+    _pilihTemaTerakhir = sekarang;
+
     masterDatabase.themeStyle = tema;
     simpanKeLocalStorage();
     terapkanTemaSemasa();
