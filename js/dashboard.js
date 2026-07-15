@@ -232,18 +232,21 @@ function prosesBayaranPantas() {
     const data = masterDatabase.bulan[bulanAktif];
     let namaTarget = "";
     let remaining = amaunLog;
+    let hutangIdTarget = null;
+    let komitmenPaidIds = null;
 
     if(jenis === 'catKom') {
+        let paidIds = [];
         data.komitmen.forEach(i => {
             let kat = i.kategori || i.icon;
-            if(kat === namaKategori && !i.paid && remaining > 0) {
-                let payAmt = Math.min(i.amaun, remaining);
-                if(payAmt >= i.amaun) i.paid = true;
-                remaining -= payAmt;
+            if(kat === namaKategori && !i.paid && remaining >= i.amaun) {
+                i.paid = true;
+                paidIds.push(i.id);
+                remaining -= i.amaun;
             }
         });
         namaTarget = `Kategori Komitmen: ${namaKategori}`;
-        paparToast("Bayaran Dikemaskini", `Komitmen kategori "${namaKategori}" dikemaskini.`, "sukses");
+        komitmenPaidIds = paidIds;
     } else if(jenis === 'catHut') {
         const akaunSelectEl = document.getElementById('quick-pay-hutang-akaun-select');
         const hutangIdVal = akaunSelectEl ? akaunSelectEl.value : "";
@@ -255,9 +258,12 @@ function prosesBayaranPantas() {
                 return;
             }
 
-            target.sudahDibayar = (parseFloat(target.sudahDibayar) || 0) + amaunLog;
+            let baki = Math.max(0, target.jumlahAsal - target.sudahDibayar);
+            let payAmt = Math.min(baki, remaining);
+            target.sudahDibayar = (parseFloat(target.sudahDibayar) || 0) + payAmt;
+            remaining -= payAmt;
             namaTarget = `Hutang: ${target.nama}`;
-            paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki "${target.nama}".`, "sukses");
+            hutangIdTarget = target.id;
         } else {
             data.hutang.forEach(h => {
                 let kat = h.kategori || "Lain-lain";
@@ -269,15 +275,27 @@ function prosesBayaranPantas() {
                 }
             });
             namaTarget = `Kategori Hutang: ${namaKategori}`;
-            paparToast("Baki Berkurang", `RM ${amaunLog.toFixed(2)} ditolak dari baki kategori "${namaKategori}".`, "sukses");
         }
+    }
+
+    const amaunTerpakai = amaunLog - remaining;
+
+    if(amaunTerpakai <= 0) {
+        paparToast("Tiada Baki Perlu Dibayar", `"${namaTarget}" sudah tiada baki tertunggak untuk ditolak.`, "amaran");
+        return;
     }
 
     if(!data.bayaranHistory) data.bayaranHistory = [];
     const tarikhHariIni = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
     data.bayaranHistory.push({
-        id: Date.now(), tipe: jenis, targetId: namaKategori, nama: namaTarget, amaun: amaunLog, tarikh: tarikhHariIni
+        id: Date.now(), tipe: jenis, targetId: namaKategori, hutangId: hutangIdTarget, paidItemIds: komitmenPaidIds, nama: namaTarget, amaun: amaunTerpakai, tarikh: tarikhHariIni
     });
+
+    if(remaining > 0.004) {
+        paparToast("Baki Lebihan Tidak Digunakan", `RM ${amaunTerpakai.toFixed(2)} telah ditolak. Baki lebihan RM ${remaining.toFixed(2)} tidak direkod kerana tiada tunggakan lagi.`, "amaran");
+    } else {
+        paparToast("Baki Berkurang", `RM ${amaunTerpakai.toFixed(2)} telah ditolak daripada "${namaTarget}".`, "sukses");
+    }
 
     document.getElementById('quick-pay-amount').value = "";
     tutupQuickPayModal();
@@ -293,7 +311,7 @@ function editSejarah(idLog) {
     const logItem = data.bayaranHistory[idxLog];
     const amaunBaruInput = prompt(`Kemaskini Amaun Bayaran Sejarah untuk "${logItem.nama}":`, logItem.amaun);
     if(amaunBaruInput === null) return;
-    const amaunBaru = parseFloat(amaunBaruInput) || 0;
+    let amaunBaru = parseFloat(amaunBaruInput) || 0;
     
     if(logItem.amaun < 0) return paparToast("Dilarang", "Log pemulangan tidak boleh diedit, hanya dipadam.", "amaran");
     if(amaunBaru < 0) return paparToast("Ralat Amaun", "Sila masukkan amaun baru yang sah.", "amaran");
@@ -301,7 +319,25 @@ function editSejarah(idLog) {
     const perbezaan = amaunBaru - logItem.amaun;
 
     if(logItem.tipe === 'catHut') {
-        if (perbezaan > 0) {
+        if (logItem.hutangId) {
+            const h = data.hutang.find(x => x.id === logItem.hutangId);
+            if (h) {
+                if (perbezaan > 0) {
+                    let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                    let applied = Math.min(baki, perbezaan);
+                    h.sudahDibayar += applied;
+                    amaunBaru = logItem.amaun + applied;
+                } else if (perbezaan < 0) {
+                    let takeBack = Math.min(h.sudahDibayar, Math.abs(perbezaan));
+                    h.sudahDibayar -= takeBack;
+                    if(h.sudahDibayar < 0) h.sudahDibayar = 0;
+                    amaunBaru = logItem.amaun - takeBack;
+                }
+            } else {
+                paparToast("Makluman", "Akaun hutang asal bagi log ini telah dipadam. Amaun log tidak diubah.", "amaran");
+                amaunBaru = logItem.amaun;
+            }
+        } else if (perbezaan > 0) {
             let remaining = perbezaan;
             for (let i = 0; i < data.hutang.length; i++) {
                 let h = data.hutang[i];
@@ -314,6 +350,7 @@ function editSejarah(idLog) {
                     if(remaining <= 0) break;
                 }
             }
+            amaunBaru = amaunBaru - remaining;
         } else if (perbezaan < 0) {
             let diffToRemove = Math.abs(perbezaan);
             for (let i = 0; i < data.hutang.length; i++) {
@@ -326,9 +363,72 @@ function editSejarah(idLog) {
                     if (diffToRemove <= 0) break;
                 }
             }
+            amaunBaru = logItem.amaun - (Math.abs(perbezaan) - diffToRemove);
         }
-    } else if (logItem.tipe === 'catKom' || logItem.tipe === 'catHutCheck') {
-        paparToast("Makluman", "Log diedit. Sila pastikan status semakan/ansuran di dalam senarai adalah tepat.", "info");
+    } else if (logItem.tipe === 'editHutang') {
+        const h = logItem.hutangId ? data.hutang.find(x => x.id === logItem.hutangId) : null;
+        if (h) {
+            let novaSudahDibayar = h.sudahDibayar + perbezaan;
+            novaSudahDibayar = Math.max(0, Math.min(h.jumlahAsal, novaSudahDibayar));
+            h.sudahDibayar = novaSudahDibayar;
+        } else {
+            paparToast("Makluman", "Akaun hutang asal bagi log ini telah dipadam. Amaun log tidak diubah.", "amaran");
+            amaunBaru = logItem.amaun;
+        }
+    } else if (logItem.tipe === 'catKom') {
+        if (logItem.itemId) {
+            paparToast("Tidak Boleh Edit", "Log ini terikat terus dengan status 'Sudah Bayar' komitmen tersebut. Padam log ini untuk buka semula, atau kemaskini amaun asal di halaman Komitmen.", "amaran");
+            return;
+        }
+        (logItem.paidItemIds || []).forEach(id => {
+            const c = data.komitmen.find(x => x.id === id);
+            if (c) c.paid = false;
+        });
+        let pool = amaunBaru;
+        let newPaidIds = [];
+        data.komitmen.forEach(c => {
+            let kat = c.kategori || c.icon;
+            if (kat === logItem.targetId && !c.paid && pool >= c.amaun) {
+                c.paid = true;
+                newPaidIds.push(c.id);
+                pool -= c.amaun;
+            }
+        });
+        logItem.paidItemIds = newPaidIds;
+        if (pool > 0.004) {
+            paparToast("Baki Lebihan Tidak Digunakan", `RM ${pool.toFixed(2)} tidak dapat digunakan kerana tiada item lagi untuk dibayar penuh dalam kategori ini.`, "amaran");
+        }
+        amaunBaru = amaunBaru - pool;
+    } else if (logItem.tipe === 'catHutCheck') {
+        const kat = logItem.targetId;
+        if(!data.hutangCatPaidDeltas) data.hutangCatPaidDeltas = {};
+        const oldDeltas = data.hutangCatPaidDeltas[kat] || {};
+        data.hutang.forEach(h => {
+            if (h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kat) {
+                const payAmt = oldDeltas[h.id] || 0;
+                h.sudahDibayar -= payAmt;
+                if (h.sudahDibayar < 0) h.sudahDibayar = 0;
+            }
+        });
+        let pool = amaunBaru;
+        const newDeltas = {};
+        data.hutang.forEach(h => {
+            if (pool > 0 && h.status === 'Aktif' && h.isMonthlyPay !== false && (h.kategori || 'Lain-lain') === kat) {
+                const baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                const payAmt = Math.min(baki, pool);
+                if (payAmt > 0) {
+                    h.sudahDibayar += payAmt;
+                    newDeltas[h.id] = payAmt;
+                    pool -= payAmt;
+                }
+            }
+        });
+        data.hutangCatPaidDeltas[kat] = newDeltas;
+        if (pool > 0.004) {
+            paparToast("Baki Lebihan Tidak Digunakan", `RM ${pool.toFixed(2)} tidak dapat digunakan kerana baki hutang kategori ini sudah tiada tunggakan.`, "amaran");
+        }
+        amaunBaru = amaunBaru - pool;
+        if (amaunBaru <= 0 && data.hutangCatPaid) data.hutangCatPaid[kat] = false;
     }
 
     logItem.amaun = amaunBaru;
@@ -344,8 +444,30 @@ function padamSejarah(idLog) {
 
     const logItem = data.bayaranHistory[idxLog];
 
-    if(logItem.tipe === 'catHut') {
-        if (logItem.amaun > 0) {
+    if(logItem.tipe === 'editHutang') {
+        const h = logItem.hutangId ? data.hutang.find(x => x.id === logItem.hutangId) : null;
+        if (h) {
+            let novaSudahDibayar = h.sudahDibayar - logItem.amaun;
+            h.sudahDibayar = Math.max(0, Math.min(h.jumlahAsal, novaSudahDibayar));
+        } else {
+            paparToast("Makluman", "Akaun hutang asal bagi log ini telah dipadam. Baki akaun lain tidak diubah.", "amaran");
+        }
+    } else if(logItem.tipe === 'catHut') {
+        if (logItem.hutangId) {
+            const h = data.hutang.find(x => x.id === logItem.hutangId);
+            if (h) {
+                if (logItem.amaun > 0) {
+                    let takeBack = Math.min(h.sudahDibayar, logItem.amaun);
+                    h.sudahDibayar -= takeBack;
+                    if(h.sudahDibayar < 0) h.sudahDibayar = 0;
+                } else if (logItem.amaun < 0) {
+                    let baki = Math.max(0, h.jumlahAsal - h.sudahDibayar);
+                    h.sudahDibayar += Math.min(baki, Math.abs(logItem.amaun));
+                }
+            } else {
+                paparToast("Makluman", "Akaun hutang asal bagi log ini telah dipadam. Baki akaun lain tidak diubah.", "amaran");
+            }
+        } else if (logItem.amaun > 0) {
             let diffToRemove = logItem.amaun;
             for (let i = 0; i < data.hutang.length; i++) {
                 let h = data.hutang[i];
@@ -375,6 +497,11 @@ function padamSejarah(idLog) {
         if (logItem.itemId) {
             const cIdx = data.komitmen.findIndex(c => c.id === logItem.itemId);
             if(cIdx !== -1) data.komitmen[cIdx].paid = false;
+        } else if (logItem.paidItemIds) {
+            logItem.paidItemIds.forEach(id => {
+                const c = data.komitmen.find(x => x.id === id);
+                if (c) c.paid = false;
+            });
         } else {
             data.komitmen.forEach(c => {
                 let kat = c.kategori || c.icon;
@@ -585,7 +712,7 @@ function kemaskiniSemuaPaparan() {
         } else {
             senaraiLog.forEach(log => {
                 totalAmaunSejarah += log.amaun;
-                let labelTipe = log.tipe === 'catHut' ? '💳 Hutang (Baki)' : (log.tipe === 'catHutCheck' ? '💳 Hutang (Ansuran)' : '📋 Komitmen');
+                let labelTipe = log.tipe === 'catHut' ? '💳 Hutang (Baki)' : (log.tipe === 'catHutCheck' ? '💳 Hutang (Ansuran)' : (log.tipe === 'editHutang' ? '✏️ Hutang (Pembetulan)' : '📋 Komitmen'));
                 sejarahContainer.innerHTML += `
                     <div class="flex justify-between items-center bg-slate-500/10 dark:bg-white/5 border border-slate-300 dark:border-transparent p-2.5 rounded-xl text-[10px] hover:bg-slate-500/20 transition-colors">
                         <div class="flex flex-col">

@@ -14,7 +14,27 @@ function tutupKomitmenModal() {
 }
 
 function padamKomitmen(id) {
-    masterDatabase.bulan[bulanAktif].komitmen = masterDatabase.bulan[bulanAktif].komitmen.filter(i => i.id !== id);
+    const data = masterDatabase.bulan[bulanAktif];
+    const item = data.komitmen.find(i => i.id === id);
+    const amaunItem = item ? item.amaun : 0;
+
+    data.komitmen = data.komitmen.filter(i => i.id !== id);
+
+    if(data.bayaranHistory) {
+        data.bayaranHistory = data.bayaranHistory.reduce((acc, log) => {
+            if(log.tipe === 'catKom') {
+                if(log.itemId === id) return acc; // log belonged solely to this item — drop it
+                if(log.paidItemIds && log.paidItemIds.includes(id)) {
+                    log.paidItemIds = log.paidItemIds.filter(x => x !== id);
+                    log.amaun = Math.max(0, log.amaun - amaunItem);
+                    if(log.paidItemIds.length === 0 || log.amaun <= 0) return acc; // nothing left in this log
+                }
+            }
+            acc.push(log);
+            return acc;
+        }, []);
+    }
+
     simpanKeLocalStorage();
     kemaskiniSemuaPaparan();
     paparToast("Item Dipadam", "Komitmen telah dikeluarkan daripada senarai.", "padam");

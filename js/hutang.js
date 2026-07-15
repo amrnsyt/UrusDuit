@@ -45,7 +45,32 @@ function editHutang(id) {
 }
 
 function padamHutang(id) {
-    masterDatabase.bulan[bulanAktif].hutang = masterDatabase.bulan[bulanAktif].hutang.filter(h => h.id !== id);
+    const data = masterDatabase.bulan[bulanAktif];
+    const target = data.hutang.find(h => h.id === id);
+    const kategoriTarget = target ? (target.kategori || "Lain-lain") : null;
+
+    data.hutang = data.hutang.filter(h => h.id !== id);
+
+    if(data.bayaranHistory) {
+        data.bayaranHistory = data.bayaranHistory.filter(log => {
+            if((log.tipe === 'catHut' || log.tipe === 'editHutang') && log.hutangId === id) return false;
+            return true;
+        });
+    }
+
+    if(kategoriTarget && data.hutangCatPaidDeltas && data.hutangCatPaidDeltas[kategoriTarget] && data.hutangCatPaidDeltas[kategoriTarget][id] !== undefined) {
+        const deltaAmt = data.hutangCatPaidDeltas[kategoriTarget][id];
+        delete data.hutangCatPaidDeltas[kategoriTarget][id];
+        const catCheckLog = data.bayaranHistory.find(l => l.tipe === 'catHutCheck' && l.targetId === kategoriTarget);
+        if(catCheckLog) {
+            catCheckLog.amaun = Math.max(0, catCheckLog.amaun - deltaAmt);
+            if(catCheckLog.amaun <= 0) {
+                data.bayaranHistory = data.bayaranHistory.filter(l => l !== catCheckLog);
+                if(data.hutangCatPaid) data.hutangCatPaid[kategoriTarget] = false;
+            }
+        }
+    }
+
     if(idHutangSedangDiedit === id) kosongkanBorangHutang();
     simpanKeLocalStorage();
     segarkanDropdownTapisanKategoriHutang();
@@ -154,8 +179,9 @@ function tambahHutang() {
                 const tarikhHariIni = new Date().toLocaleDateString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric' });
                 data.bayaranHistory.push({
                     id: Date.now(), 
-                    tipe: 'catHut', 
+                    tipe: 'editHutang', 
                     targetId: kategori, 
+                    hutangId: data.hutang[idx].id,
                     nama: `Edit Akaun: ${nama} ${diff > 0 ? '(Tambah)' : '(Batal)'}`, 
                     amaun: diff, 
                     tarikh: tarikhHariIni
