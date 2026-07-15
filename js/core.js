@@ -258,6 +258,9 @@ function terapkanTemaSemasa() {
     document.querySelectorAll('.dinamik-nav-btn[data-tab]').forEach(btn => {
         btn.classList.toggle('dinamik-active', btn.dataset.tab === namaTabAktif);
     });
+    if(typeof terapkanBentoDashboard === 'function') {
+        terapkanBentoDashboard(masterDatabase.layoutMode === "dinamik");
+    }
     if(masterDatabase.layoutMode === "dinamik" && aktifTabEl) {
         aktifTabEl.classList.remove('bento-mount');
         void aktifTabEl.offsetWidth;
@@ -453,6 +456,8 @@ function tukarTab(tabName, element) {
     document.querySelectorAll('.dinamik-nav-btn[data-tab]').forEach(btn => {
         btn.classList.toggle('dinamik-active', btn.dataset.tab === tabName);
     });
+
+    if(tabName === 'dashboard' && typeof kemaskiniBentoDonut === 'function') kemaskiniBentoDonut();
 
     kemaskiniHeaderModern(tabName);
 }

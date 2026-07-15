@@ -945,57 +945,65 @@ body.light-theme .dinamik-nav-btn.dinamik-active { color: #4338ca; }
 body.layout-dinamik #bottom-nav-wrapper { display: none !important; }
 body.layout-dinamik #app-header-bar { display: none !important; }
 
-/* --- Shift main content to make room for sidebar --- */
-body.layout-dinamik { padding-bottom: 24px !important; }
+/* --- Shift main content to make room for sidebar (width-safe, no overflow) --- */
+body.layout-dinamik { padding-bottom: 24px !important; overflow-x: hidden; }
 body.layout-dinamik #app-main-wrapper {
     margin-left: 68px;
-    max-width: 100%;
+    width: calc(100% - 68px);
+    max-width: none;
     padding-left: 14px;
     padding-right: 14px;
     box-sizing: border-box;
 }
 @media (min-width: 680px) {
-    body.layout-dinamik #app-main-wrapper { margin-left: 208px; max-width: 980px; padding-left: 24px; padding-right: 24px; }
+    body.layout-dinamik #app-main-wrapper { margin-left: 208px; width: calc(100% - 208px); max-width: 980px; padding-left: 24px; padding-right: 24px; }
 }
 
 /* --- Bento grid: every tab content becomes an adaptive asymmetric grid --- */
 body.layout-dinamik .tab-content.active {
     display: grid !important;
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-flow: dense;
-    gap: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: row;
+    gap: 12px;
     align-items: start;
 }
 @media (min-width: 680px) {
-    body.layout-dinamik .tab-content.active { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    body.layout-dinamik .tab-content.active { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 }
 @media (min-width: 1024px) {
-    body.layout-dinamik .tab-content.active { grid-template-columns: repeat(4, 1fr); }
+    body.layout-dinamik .tab-content.active { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 body.layout-dinamik .tab-content.active > * { margin: 0 !important; min-width: 0; }
-body.layout-dinamik .tab-content.active > *:first-child { grid-column: 1 / -1; }
-body.layout-dinamik .tab-content.active > *:nth-child(2),
-body.layout-dinamik .tab-content.active > *:nth-child(3) { grid-column: span 2; }
-body.layout-dinamik .tab-content.active > *:nth-child(n+4) { grid-column: span 1; }
-@media (min-width: 1024px) {
-    body.layout-dinamik .tab-content.active > *:first-child { grid-column: span 2; }
+
+/* Generic fallback asymmetry for tabs without explicit bento classes:
+   1st item full-width hero, then pairs of 2 side-by-side, every 4th full-width again. */
+body.layout-dinamik .tab-content.active > *:nth-child(1) { grid-column: 1 / -1; }
+body.layout-dinamik .tab-content.active > *:nth-child(n+2) { grid-column: span 1; }
+body.layout-dinamik .tab-content.active > *:nth-child(4n+1) { grid-column: 1 / -1; }
+
+/* Explicit overrides (always win via !important) used by the Dashboard bento
+   restructure and any card author wants pinned to a specific size. */
+body.layout-dinamik .bento-span-full { grid-column: 1 / -1 !important; }
+body.layout-dinamik .bento-span-half { grid-column: span 1 !important; }
+@media (min-width: 680px) {
+    body.layout-dinamik .bento-span-third { grid-column: span 1 !important; }
 }
 
 /* --- Staggered fade + scale-up mount animation (re-triggerable via .bento-mount) --- */
 @keyframes bentoMount {
-    0%   { opacity: 0; transform: scale3d(0.9, 0.9, 1) translateY(16px); }
+    0%   { opacity: 0; transform: scale3d(0.86, 0.86, 1) translateY(18px); }
     100% { opacity: 1; transform: scale3d(1, 1, 1) translateY(0); }
 }
 body.layout-dinamik .tab-content.active > * {
-    animation: bentoMount 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: bentoMount 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 body.layout-dinamik .tab-content.active > *:nth-child(1) { animation-delay: 0.02s; }
-body.layout-dinamik .tab-content.active > *:nth-child(2) { animation-delay: 0.07s; }
-body.layout-dinamik .tab-content.active > *:nth-child(3) { animation-delay: 0.12s; }
-body.layout-dinamik .tab-content.active > *:nth-child(4) { animation-delay: 0.17s; }
-body.layout-dinamik .tab-content.active > *:nth-child(5) { animation-delay: 0.22s; }
-body.layout-dinamik .tab-content.active > *:nth-child(6) { animation-delay: 0.27s; }
-body.layout-dinamik .tab-content.active > *:nth-child(n+7) { animation-delay: 0.32s; }
+body.layout-dinamik .tab-content.active > *:nth-child(2) { animation-delay: 0.08s; }
+body.layout-dinamik .tab-content.active > *:nth-child(3) { animation-delay: 0.14s; }
+body.layout-dinamik .tab-content.active > *:nth-child(4) { animation-delay: 0.20s; }
+body.layout-dinamik .tab-content.active > *:nth-child(5) { animation-delay: 0.26s; }
+body.layout-dinamik .tab-content.active > *:nth-child(6) { animation-delay: 0.32s; }
+body.layout-dinamik .tab-content.active > *:nth-child(n+7) { animation-delay: 0.38s; }
 
 /* --- Bento cards: rounded, elevated, no forced radius override needed since liquid-glass already rounds; just unify --- */
 body.layout-dinamik .tab-content.active > * {
@@ -1006,6 +1014,17 @@ body.layout-dinamik .tab-content.active > * {
 /* --- Data viz / stat modules living inside cards get a cleaner flush look --- */
 body.layout-dinamik .bg-slate-500\/5 {
     border-radius: 14px !important;
+}
+
+/* --- Bento donut + mini-stat composite card --- */
+#bento-mini-card { display: flex !important; align-items: center; gap: 16px; flex-wrap: nowrap; }
+#bento-mini-card .grid-cols-3 { grid-template-columns: 1fr !important; gap: 6px !important; text-align: left !important; flex: 1; min-width: 0; }
+#bento-donut-wrap { position: relative; width: 76px; height: 76px; flex-shrink: 0; }
+#bento-donut-wrap .dinamik-donut { width: 76px; height: 76px; }
+#bento-donut-wrap span {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800;
 }
 
 /* --- Pill-style top category tabs (used for sub-navigation, e.g. history/report filters) --- */
