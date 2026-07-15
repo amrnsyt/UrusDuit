@@ -14,7 +14,7 @@
     <meta name="theme-color" content="#0f172a">
 
     <!-- CSS MODULE (Cache busted with ?v=8.9) -->
-    <link rel="stylesheet" href="css/styles.css?v=9.0">
+    <link rel="stylesheet" href="css/styles.css?v=9.1">
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -596,8 +596,21 @@
         </div>
     </div>
 
+    <!-- DINAMIK (BENTO) SIDEBAR -->
+    <div id="dinamik-sidebar" class="dinamik-sidebar">
+        <div class="dinamik-sidebar-logo"><i class="fa-solid fa-wallet"></i></div>
+        <button class="dinamik-nav-btn" data-tab="dashboard" onclick="tukarTab('dashboard')"><i class="fa-solid fa-chart-pie"></i><span>Utama</span></button>
+        <button class="dinamik-nav-btn" data-tab="gaji" onclick="tukarTab('gaji')"><i class="fa-solid fa-money-check-dollar"></i><span>Gaji</span></button>
+        <button class="dinamik-nav-btn" data-tab="komitmen" onclick="tukarTab('komitmen')"><i class="fa-solid fa-receipt"></i><span>Komitmen</span></button>
+        <button class="dinamik-nav-btn" data-tab="agihan" onclick="tukarTab('agihan')"><i class="fa-solid fa-camera"></i><span>Agihan</span></button>
+        <button class="dinamik-nav-btn" data-tab="hutang" onclick="tukarTab('hutang')"><i class="fa-solid fa-hand-holding-dollar"></i><span>Hutang</span></button>
+        <div class="dinamik-sidebar-spacer"></div>
+        <button class="dinamik-nav-btn" onclick="toggleDarkMode()"><i class="fa-solid fa-circle-half-stroke"></i><span>Mod</span></button>
+        <button class="dinamik-nav-btn" data-tab="tetapan" onclick="tukarTab('tetapan')"><i class="fa-solid fa-sliders"></i><span>Tetapan</span></button>
+    </div>
+
     <!-- MAIN APP TABS -->
-    <div class="w-full max-w-md mx-auto px-4 pt-4 flex-1 flex flex-col">
+    <div id="app-main-wrapper" class="w-full max-w-md mx-auto px-4 pt-4 flex-1 flex flex-col">
         
         <div id="app-header-bar" class="flex justify-between items-center mb-4 liquid-glass p-3.5 rounded-2xl w-full">
             <div>
@@ -820,6 +833,9 @@
                     <button id="btn-layout-modern" onclick="tukarLayoutMode('modern')" type="button" class="flex-1 text-[11px] px-3 py-2 rounded-lg font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-400">
                         <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Moden
                     </button>
+                    <button id="btn-layout-dinamik" onclick="tukarLayoutMode('dinamik')" type="button" class="flex-1 text-[11px] px-3 py-2 rounded-lg font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-400">
+                        <i class="fa-solid fa-border-all text-[10px]"></i> Dinamik
+                    </button>
                 </div>
             </div>
 
@@ -959,36 +975,36 @@
 
     </div>
 
-    <div class="fixed bottom-0 left-0 right-0 w-full z-50 px-3 pb-4 bg-transparent pointer-events-none">
+    <div id="bottom-nav-wrapper" class="fixed bottom-0 left-0 right-0 w-full z-50 px-3 pb-4 bg-transparent pointer-events-none">
         <div class="max-w-md mx-auto w-full pointer-events-auto">
             <div class="liquid-glass nav-bar-track rounded-2xl px-2 py-2.5 flex justify-between items-center bg-slate-900 dark:bg-slate-900/85 backdrop-blur-xl border border-slate-700">
                 <div id="nav-pill" class="nav-pill"></div>
-                <button onclick="tukarTab('dashboard', this)" class="nav-btn active-menu flex flex-col items-center justify-center text-indigo-400 flex-1 py-0.5 cursor-pointer">
+                <button data-tab="dashboard" onclick="tukarTab('dashboard', this)" class="nav-btn active-menu flex flex-col items-center justify-center text-indigo-400 flex-1 py-0.5 cursor-pointer">
                     <i class="fa-solid fa-chart-pie text-sm"></i>
                     <span class="text-[8px] font-bold mt-0.5 text-white">Utama</span>
                     <div class="nav-dot"></div>
                 </button>
-                <button onclick="tukarTab('gaji', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
+                <button data-tab="gaji" onclick="tukarTab('gaji', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
                     <i class="fa-solid fa-money-check-dollar text-sm"></i>
                     <span class="text-[8px] font-bold mt-0.5 text-white">Gaji</span>
                     <div class="nav-dot"></div>
                 </button>
-                <button onclick="tukarTab('komitmen', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
+                <button data-tab="komitmen" onclick="tukarTab('komitmen', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
                     <i class="fa-solid fa-receipt text-sm"></i>
                     <span class="text-[8px] font-bold mt-0.5 text-white">Komitmen</span>
                     <div class="nav-dot"></div>
                 </button>
-                <button onclick="tukarTab('agihan', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
+                <button data-tab="agihan" onclick="tukarTab('agihan', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
                     <i class="fa-solid fa-camera text-sm"></i>
                     <span class="text-[8px] font-bold mt-0.5 text-white">Agihan</span>
                     <div class="nav-dot"></div>
                 </button>
-                <button onclick="tukarTab('hutang', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
+                <button data-tab="hutang" onclick="tukarTab('hutang', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
                     <i class="fa-solid fa-hand-holding-dollar text-sm"></i>
                     <span class="text-[8px] font-bold mt-0.5 text-white">Hutang</span>
                     <div class="nav-dot"></div>
                 </button>
-                <button onclick="tukarTab('tetapan', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
+                <button data-tab="tetapan" onclick="tukarTab('tetapan', this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 flex-1 py-0.5 cursor-pointer">
                     <i class="fa-solid fa-sliders text-sm"></i>
                     <span class="text-[8px] font-bold mt-0.5 text-white">Tetapan</span>
                     <div class="nav-dot"></div>

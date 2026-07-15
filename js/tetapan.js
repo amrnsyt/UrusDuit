@@ -12,14 +12,16 @@ function tukarLayoutMode(mod) {
     masterDatabase.layoutMode = mod;
     simpanKeLocalStorage();
     terapkanTemaSemasa();
-    paparToast("Reka Bentuk Ditukar", mod === "modern" ? "UI Moden diaktifkan ✨" : "UI Klasik diaktifkan.", "sukses");
+    const mesejMod = mod === "modern" ? "UI Moden diaktifkan ✨" : (mod === "dinamik" ? "UI Dinamik (Bento) diaktifkan 🟪" : "UI Klasik diaktifkan.");
+    paparToast("Reka Bentuk Ditukar", mesejMod, "sukses");
 }
 
 function paparLayoutModeAktif() {
     const mod = masterDatabase.layoutMode || "classic";
     const btnKlasik = document.getElementById('btn-layout-classic');
     const btnModen = document.getElementById('btn-layout-modern');
-    if(!btnKlasik || !btnModen) return;
+    const btnDinamik = document.getElementById('btn-layout-dinamik');
+    if(!btnKlasik || !btnModen || !btnDinamik) return;
 
     const aktifKelas = ['bg-indigo-600', 'text-white', 'shadow-sm'];
     const tidakAktifKelas = ['text-slate-700', 'dark:text-slate-400'];
@@ -29,6 +31,9 @@ function paparLayoutModeAktif() {
 
     btnModen.classList.remove(...aktifKelas, ...tidakAktifKelas);
     btnModen.classList.add(...(mod === 'modern' ? aktifKelas : tidakAktifKelas));
+
+    btnDinamik.classList.remove(...aktifKelas, ...tidakAktifKelas);
+    btnDinamik.classList.add(...(mod === 'dinamik' ? aktifKelas : tidakAktifKelas));
 }
 
 function menuKebabPlaceholder() {

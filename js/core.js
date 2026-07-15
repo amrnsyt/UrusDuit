@@ -223,6 +223,7 @@ function terapkanTemaSemasa() {
     let kelasAsas = masterDatabase.isDarkMode ? "dark-theme dark min-h-screen flex flex-col justify-between pb-32" : "light-theme min-h-screen flex flex-col justify-between pb-32";
     if(masterDatabase.themeStyle === "liquidglass") kelasAsas += " theme-liquidglass";
     if(masterDatabase.layoutMode === "modern") kelasAsas += " layout-modern";
+    if(masterDatabase.layoutMode === "dinamik") kelasAsas += " layout-dinamik";
 
     document.body.classList.add('theme-switching');
     document.body.className = kelasAsas + " theme-switching";
@@ -251,6 +252,17 @@ function terapkanTemaSemasa() {
         requestAnimationFrame(() => kemaskiniPosisiNavPill());
     }
     if(typeof paparLayoutModeAktif === 'function') paparLayoutModeAktif();
+
+    const aktifTabEl = document.querySelector('.tab-content.active');
+    const namaTabAktif = aktifTabEl ? aktifTabEl.id.replace('tab-', '') : 'dashboard';
+    document.querySelectorAll('.dinamik-nav-btn[data-tab]').forEach(btn => {
+        btn.classList.toggle('dinamik-active', btn.dataset.tab === namaTabAktif);
+    });
+    if(masterDatabase.layoutMode === "dinamik" && aktifTabEl) {
+        aktifTabEl.classList.remove('bento-mount');
+        void aktifTabEl.offsetWidth;
+        aktifTabEl.classList.add('bento-mount');
+    }
 }
 
 function bukaModal(tajuk, mesej, iconClass, wrapperClass, textIconClass, btnClass, iconBtnClass, btnText, action) {
@@ -416,15 +428,32 @@ function tukarTab(tabName, element) {
     if(sekarang - _tukarTabTerakhir < 180) return; // debounce: ignore rapid double-taps
     _tukarTabTerakhir = sekarang;
 
+    if(!element) element = document.querySelector('.nav-btn[data-tab="' + tabName + '"]');
+
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.getElementById('tab-' + tabName).classList.add('active');
+    const tabEl = document.getElementById('tab-' + tabName);
+    tabEl.classList.add('active');
+
+    if(masterDatabase.layoutMode === "dinamik") {
+        tabEl.classList.remove('bento-mount');
+        void tabEl.offsetWidth;
+        tabEl.classList.add('bento-mount');
+    }
+
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('text-indigo-400', 'active-menu');
         btn.classList.add('text-slate-400');
     });
-    element.classList.remove('text-slate-400');
-    element.classList.add('text-indigo-400', 'active-menu');
-    kemaskiniPosisiNavPill(element, true);
+    if(element) {
+        element.classList.remove('text-slate-400');
+        element.classList.add('text-indigo-400', 'active-menu');
+        kemaskiniPosisiNavPill(element, true);
+    }
+
+    document.querySelectorAll('.dinamik-nav-btn[data-tab]').forEach(btn => {
+        btn.classList.toggle('dinamik-active', btn.dataset.tab === tabName);
+    });
+
     kemaskiniHeaderModern(tabName);
 }
 
