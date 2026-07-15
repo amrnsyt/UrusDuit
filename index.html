@@ -13,8 +13,8 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0f172a">
 
-    <!-- CSS MODULE (Cache busted with ?v=8.4) -->
-    <link rel="stylesheet" href="css/styles.css?v=8.4">
+    <!-- CSS MODULE (Cache busted with ?v=8.9) -->
+    <link rel="stylesheet" href="css/styles.css?v=8.9">
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -668,72 +668,91 @@
                     <h3 class="text-xs font-bold flex items-center gap-2">
                         <i class="fa-solid fa-list-check text-indigo-500 dark:text-indigo-400"></i> Semakan Komitmen Bulan Ini
                     </h3>
-                    <span id="checklist-progresi" class="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-slate-500/10 px-2 py-0.5 rounded-md">0/0 Setel</span>
+                    <div class="flex items-center gap-1.5">
+                        <span id="checklist-progresi" class="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-slate-500/10 px-2 py-0.5 rounded-md">0/0 Setel</span>
+                        <i class="fa-solid fa-chevron-right modern-only-chevron"></i>
+                    </div>
                 </div>
                 <div id="dashboard-checklist-container" class="space-y-2.5 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="bukaQuickPayModal()" class="liquid-glass rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-indigo-500/5 transition-colors border border-transparent hover:border-indigo-500/20">
+                <div onclick="bukaQuickPayModal()" role="button" tabindex="0" class="modern-tile modern-tile-indigo liquid-glass rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-indigo-500/5 transition-colors border border-transparent hover:border-indigo-500/20 relative">
+                    <button type="button" class="modern-kebab" onclick="event.stopPropagation(); menuKebabPlaceholder();"><i class="fa-solid fa-ellipsis"></i></button>
                     <div class="w-10 h-10 rounded-full bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 flex items-center justify-center text-lg"><i class="fa-solid fa-bolt"></i></div>
                     <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">Bayaran Pantas</span>
-                </button>
-                <button onclick="bukaHistoryModal()" class="liquid-glass rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-purple-500/5 transition-colors border border-transparent hover:border-purple-500/20">
+                </div>
+                <div onclick="bukaHistoryModal()" role="button" tabindex="0" class="modern-tile modern-tile-purple liquid-glass rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-purple-500/5 transition-colors border border-transparent hover:border-purple-500/20 relative">
                     <div class="w-10 h-10 rounded-full bg-purple-500/10 text-purple-500 dark:text-purple-400 flex items-center justify-center text-lg"><i class="fa-solid fa-clock-rotate-left"></i></div>
                     <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">Sejarah Log</span>
-                </button>
+                </div>
             </div>
         </div>
 
         <div id="tab-gaji" class="tab-content space-y-4 w-full">
-            <div class="liquid-glass rounded-2xl p-4 text-center">
+            <div class="liquid-glass rounded-2xl p-4 text-center modern-grad-indigo">
                 <p class="text-[10px] opacity-70 font-bold uppercase text-indigo-600 dark:text-indigo-400">Jumlah Gaji Kasar</p>
                 <span id="display-gaji-kasar" class="text-xl font-bold text-indigo-600 dark:text-indigo-400 block mt-1">RM 0.00</span>
                 <span id="display-jumlah-potongan" class="text-[10px] opacity-70 block font-medium mt-1">Potongan: RM 0.00</span>
             </div>
 
-            <button onclick="bukaGajiModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-2xl cursor-pointer transition-all shadow-lg flex items-center justify-center gap-2">
+            <div class="modern-group-header"><span>Pengurusan Gaji</span><i class="fa-solid fa-chevron-right"></i></div>
+
+            <button onclick="bukaGajiModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-3 rounded-2xl cursor-pointer transition-all shadow-lg flex items-center justify-center gap-2 modern-cta-gradient">
                 <i class="fa-solid fa-wallet"></i> Edit Gaji & Pendapatan
+                <i class="fa-solid fa-chevron-right modern-only-chevron ml-auto"></i>
             </button>
         </div>
 
         <div id="tab-komitmen" class="tab-content space-y-4 w-full">
-            <div class="liquid-glass rounded-2xl p-4 text-center">
+            <div class="liquid-glass rounded-2xl p-4 text-center modern-grad-pink">
                 <p class="text-[10px] opacity-70 font-bold uppercase text-pink-600 dark:text-pink-500">Jumlah Komitmen Bulanan</p>
                 <span id="display-total-komitmen-page" class="text-xl font-bold text-pink-600 dark:text-pink-500 block mt-1">RM 0.00</span>
                 <span id="total-komitmen-count" class="text-[10px] opacity-70 block font-medium mt-1">0 Item</span>
             </div>
 
+            <div class="modern-group-header"><span>Tambah &amp; Urus Komitmen</span><i class="fa-solid fa-chevron-right"></i></div>
+
             <button onclick="bukaKomitmenModal()" class="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-xs py-3 rounded-2xl cursor-pointer transition-all shadow-lg flex items-center justify-center gap-2">
                 <i class="fa-solid fa-plus-circle"></i> Tambah Komitmen
+                <i class="fa-solid fa-chevron-right modern-only-chevron ml-auto"></i>
             </button>
 
             <div class="space-y-2">
-                <p class="text-[10px] uppercase tracking-wider opacity-70 font-bold px-1">Senarai Item Komitmen Bulan Ini</p>
+                <div class="flex items-center justify-between px-1">
+                    <p class="text-[10px] uppercase tracking-wider opacity-70 font-bold">Senarai Item Komitmen Bulan Ini</p>
+                    <i class="fa-solid fa-chevron-right modern-only-chevron"></i>
+                </div>
                 <div id="komitmen-list-manage-container" class="space-y-2"></div>
             </div>
         </div>
 
         <div id="tab-agihan" class="tab-content space-y-4 w-full">
-            <div class="liquid-glass rounded-2xl p-4 text-center">
+            <div class="liquid-glass rounded-2xl p-4 text-center modern-grad-emerald">
                 <p class="text-[10px] opacity-70 font-bold uppercase text-emerald-600 dark:text-emerald-400">Jumlah Baki Agihan (Komitmen Dipilih)</p>
                 <span id="display-total-baki-agihan" class="text-xl font-bold text-emerald-600 dark:text-emerald-400 block mt-1">RM 0.00</span>
                 <span id="total-agihan-count" class="text-[10px] opacity-70 block font-medium mt-1">0 Komitmen Dipilih</span>
             </div>
 
+            <div class="modern-group-header"><span>Pilihan &amp; Imbasan Resit</span><i class="fa-solid fa-chevron-right"></i></div>
+
             <button onclick="bukaPilihAgihanModal()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-3 rounded-2xl cursor-pointer transition-all shadow-lg flex items-center justify-center gap-2">
                 <i class="fa-solid fa-list-check"></i> Pilih Komitmen Untuk Agihan
+                <i class="fa-solid fa-chevron-right modern-only-chevron ml-auto"></i>
             </button>
 
             <div class="space-y-2">
-                <p class="text-[10px] uppercase tracking-wider opacity-70 font-bold px-1">Agihan Komitmen Aktif</p>
+                <div class="flex items-center justify-between px-1">
+                    <p class="text-[10px] uppercase tracking-wider opacity-70 font-bold">Agihan Komitmen Aktif</p>
+                    <i class="fa-solid fa-chevron-right modern-only-chevron"></i>
+                </div>
                 <div id="agihan-list-container" class="space-y-3"></div>
             </div>
         </div>
 
         <div id="tab-hutang" class="tab-content space-y-4 w-full">
-            <div class="liquid-glass rounded-2xl p-4 text-center space-y-2">
+            <div class="liquid-glass rounded-2xl p-4 text-center space-y-2 modern-grad-amber">
                 <div>
                     <p class="text-[10px] opacity-70 font-bold uppercase text-amber-600 dark:text-amber-500">Total Baki Hutang Keseluruhan</p>
                     <span id="display-total-baki-hutang" class="text-xl font-bold text-amber-600 dark:text-amber-500 block mt-1">RM 0.00</span>
@@ -751,8 +770,11 @@
                 </div>
             </div>
 
+            <div class="modern-group-header"><span>Urus Akaun Hutang</span><i class="fa-solid fa-chevron-right"></i></div>
+
             <button onclick="bukaBorangHutangModal()" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs py-3 rounded-2xl cursor-pointer transition-all shadow-lg flex items-center justify-center gap-2">
                 <i class="fa-solid fa-plus-circle"></i> Tambah Hutang Baru
+                <i class="fa-solid fa-chevron-right modern-only-chevron ml-auto"></i>
             </button>
 
             <div class="liquid-glass p-3 rounded-xl flex flex-col gap-2.5 w-full relative z-[100]">
@@ -776,6 +798,10 @@
             </div>
 
             <div class="space-y-3">
+                <div class="flex items-center justify-between px-1">
+                    <p class="text-[10px] uppercase tracking-wider opacity-70 font-bold">Senarai Akaun Hutang</p>
+                    <i class="fa-solid fa-chevron-right modern-only-chevron"></i>
+                </div>
                 <div id="hutang-list-container" class="space-y-3"></div>
             </div>
         </div>

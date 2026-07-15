@@ -560,20 +560,13 @@ body.layout-modern.light-theme .nav-bar-track {
     background: rgba(255, 255, 255, 0.72) !important;
     box-shadow: 0 16px 40px -10px rgba(15,23,42,0.25), inset 0 1px 0 0 rgba(255,255,255,0.5) !important;
 }
-body.layout-modern .nav-pill {
-    opacity: 1 !important;
-    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important;
-    box-shadow: 0 4px 14px rgba(99,102,241,0.5) !important;
-    border: none !important;
-}
-
 /* --- Modern Settings (Tetapan) --- */
 .tetapan-modern-view { display: none; }
 body.layout-modern .tetapan-classic-view { display: none; }
 body.layout-modern .tetapan-modern-view { display: block; }
 
 .modern-group-header {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: space-between;
     padding: 0 6px 8px 6px;
@@ -582,6 +575,7 @@ body.layout-modern .tetapan-modern-view { display: block; }
     letter-spacing: 0.01em;
     opacity: 0.85;
 }
+body.layout-modern .modern-group-header { display: flex; }
 .modern-group-header i { font-size: 9px; opacity: 0.45; }
 
 .modern-card {
@@ -626,4 +620,91 @@ body.layout-modern .tetapan-modern-view { display: block; }
     cursor: pointer;
     border: none;
     color: inherit;
+}
+
+/* --- Modern Dashboard --- */
+.modern-only-chevron { display: none; }
+body.layout-modern .modern-only-chevron {
+    display: inline-block;
+    opacity: 0.4;
+    font-size: 9px;
+}
+
+body.layout-modern #kad-baki-utama {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #db2777 100%) !important;
+    border: none !important;
+    box-shadow: 0 20px 40px -14px rgba(124,58,237,0.5) !important;
+}
+body.layout-modern #kad-baki-utama p,
+body.layout-modern #kad-baki-utama h2,
+body.layout-modern #kad-baki-utama span {
+    color: #fff !important;
+}
+body.layout-modern #kad-baki-utama .bg-slate-500\/5 {
+    background: rgba(255,255,255,0.16) !important;
+    border-color: rgba(255,255,255,0.28) !important;
+}
+body.layout-modern #kad-baki-utama .border-slate-300,
+body.layout-modern #kad-baki-utama .dark\:border-slate-500\/15 {
+    border-color: rgba(255,255,255,0.25) !important;
+}
+
+body.layout-modern .modern-tile {
+    border: none !important;
+    color: #fff !important;
+}
+body.layout-modern .modern-tile span {
+    color: #fff !important;
+}
+body.layout-modern .modern-tile > div:first-child {
+    background: rgba(255,255,255,0.22) !important;
+    color: #fff !important;
+}
+body.layout-modern .modern-tile-indigo { background: linear-gradient(120deg, #6366f1, #818cf8) !important; }
+body.layout-modern .modern-tile-purple { background: linear-gradient(120deg, #a855f7, #e879f9) !important; }
+
+/* --- Modern Gaji --- */
+body.layout-modern .modern-grad-indigo {
+    background: linear-gradient(135deg, #4338ca 0%, #6366f1 55%, #8b5cf6 100%) !important;
+    border: none !important;
+}
+body.layout-modern .modern-grad-indigo p,
+body.layout-modern .modern-grad-indigo span {
+    color: #fff !important;
+}
+body.layout-modern .modern-cta-gradient {
+    background: linear-gradient(120deg, #4f46e5, #7c3aed) !important;
+}
+
+/* --- Modern Komitmen --- */
+body.layout-modern .modern-grad-pink {
+    background: linear-gradient(135deg, #db2777 0%, #e11d48 55%, #f43f5e 100%) !important;
+    border: none !important;
+}
+body.layout-modern .modern-grad-pink p,
+body.layout-modern .modern-grad-pink span {
+    color: #fff !important;
+}
+
+/* --- Modern Agihan --- */
+body.layout-modern .modern-grad-emerald {
+    background: linear-gradient(135deg, #047857 0%, #10b981 55%, #2dd4bf 100%) !important;
+    border: none !important;
+}
+body.layout-modern .modern-grad-emerald p,
+body.layout-modern .modern-grad-emerald span {
+    color: #fff !important;
+}
+
+/* --- Modern Hutang --- */
+body.layout-modern .modern-grad-amber {
+    background: linear-gradient(135deg, #b45309 0%, #d97706 55%, #f59e0b 100%) !important;
+    border: none !important;
+}
+body.layout-modern .modern-grad-amber p,
+body.layout-modern .modern-grad-amber span {
+    color: #fff !important;
+}
+body.layout-modern .modern-grad-amber .bg-slate-500\/5 {
+    background: rgba(255,255,255,0.16) !important;
 }
