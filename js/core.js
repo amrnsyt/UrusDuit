@@ -140,6 +140,7 @@ document.addEventListener('click', () => {
 let masterDatabase = {
     isDarkMode: true,
     themeStyle: "default",
+    layoutMode: "classic",
     customKategori: [],
     customHutangKategori: [], 
     laporanTemplates: {},
@@ -218,8 +219,10 @@ function toggleDarkMode() {
 }
 function terapkanTemaSemasa() {
     if(!masterDatabase.themeStyle) masterDatabase.themeStyle = "default";
+    if(!masterDatabase.layoutMode) masterDatabase.layoutMode = "classic";
     let kelasAsas = masterDatabase.isDarkMode ? "dark-theme dark min-h-screen flex flex-col justify-between pb-32" : "light-theme min-h-screen flex flex-col justify-between pb-32";
     if(masterDatabase.themeStyle === "liquidglass") kelasAsas += " theme-liquidglass";
+    if(masterDatabase.layoutMode === "modern") kelasAsas += " layout-modern";
 
     document.body.classList.add('theme-switching');
     document.body.className = kelasAsas + " theme-switching";
@@ -246,6 +249,7 @@ function terapkanTemaSemasa() {
     if(typeof kemaskiniPosisiNavPill === 'function') {
         requestAnimationFrame(() => kemaskiniPosisiNavPill());
     }
+    if(typeof paparLayoutModeAktif === 'function') paparLayoutModeAktif();
 }
 
 function bukaModal(tajuk, mesej, iconClass, wrapperClass, textIconClass, btnClass, iconBtnClass, btnText, action) {

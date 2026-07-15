@@ -13,8 +13,8 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0f172a">
 
-    <!-- CSS MODULE (Cache busted with ?v=8.3) -->
-    <link rel="stylesheet" href="css/styles.css?v=8.3">
+    <!-- CSS MODULE (Cache busted with ?v=8.4) -->
+    <link rel="stylesheet" href="css/styles.css?v=8.4">
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -781,6 +781,23 @@
         </div>
 
         <div id="tab-tetapan" class="tab-content space-y-4 w-full">
+
+            <div class="liquid-glass rounded-2xl p-4 space-y-3">
+                <h2 class="text-xs font-bold flex items-center gap-2 text-fuchsia-600 dark:text-fuchsia-400">
+                    <i class="fa-solid fa-swatchbook"></i> Reka Bentuk Antara Muka
+                </h2>
+                <p class="text-[9px] opacity-70 -mt-1.5">Pilih gaya paparan aplikasi. Pilihan disimpan automatik.</p>
+                <div class="flex bg-slate-500/10 rounded-xl p-1">
+                    <button id="btn-layout-classic" onclick="tukarLayoutMode('classic')" type="button" class="flex-1 text-[11px] px-3 py-2 rounded-lg font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow-sm">
+                        <i class="fa-solid fa-table-cells-large text-[10px]"></i> Klasik
+                    </button>
+                    <button id="btn-layout-modern" onclick="tukarLayoutMode('modern')" type="button" class="flex-1 text-[11px] px-3 py-2 rounded-lg font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-400">
+                        <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Moden
+                    </button>
+                </div>
+            </div>
+
+            <div class="tetapan-classic-view space-y-4">
             <div class="liquid-glass rounded-2xl p-4 space-y-4">
                 <h2 class="text-xs font-bold flex items-center gap-2 border-b border-slate-500/10 pb-2 text-teal-600 dark:text-teal-500">
                     <i class="fa-solid fa-sliders"></i> Konfigurasi Aplikasi
@@ -843,6 +860,74 @@
                         <i class="fa-solid fa-trash-can mr-2"></i> Padam Semua Data Apl
                     </button>
                 </div>
+            </div>
+            </div>
+
+            <div class="tetapan-modern-view space-y-5">
+
+                <div>
+                    <div class="modern-group-header"><span>Tema &amp; Reka Bentuk</span><i class="fa-solid fa-chevron-right"></i></div>
+                    <div class="modern-card modern-grad-sky rounded-3xl p-4 flex items-center gap-3 cursor-pointer" onclick="bukaTemaModal()">
+                        <div class="modern-icon-circle"><i class="fa-solid fa-palette"></i></div>
+                        <div class="flex-1">
+                            <h4 class="text-xs font-bold text-white">Pilih Tema Paparan</h4>
+                            <p class="text-[9px] text-white/80 mt-0.5">Default atau Liquid Glass ✨</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-white/70 text-[10px]"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="modern-group-header"><span>Sandaran &amp; Pemulihan Data</span><i class="fa-solid fa-chevron-right"></i></div>
+                    <div class="modern-card rounded-3xl p-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="modern-action-tile" onclick="eksportData()">
+                                <button type="button" class="modern-kebab" onclick="event.stopPropagation(); menuKebabPlaceholder();"><i class="fa-solid fa-ellipsis"></i></button>
+                                <div class="modern-icon-circle modern-icon-indigo"><i class="fa-solid fa-download"></i></div>
+                                <span>Backup Data</span>
+                            </div>
+                            <label class="modern-action-tile m-0">
+                                <button type="button" class="modern-kebab" onclick="event.stopPropagation(); menuKebabPlaceholder();"><i class="fa-solid fa-ellipsis"></i></button>
+                                <div class="modern-icon-circle modern-icon-emerald"><i class="fa-solid fa-upload"></i></div>
+                                <span>Restore Data</span>
+                                <input type="file" id="import-file-modern" class="hidden" accept=".json" onchange="importData(event)">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="modern-group-header"><span>Imbasan AI &amp; Laporan</span><i class="fa-solid fa-chevron-right"></i></div>
+                    <div class="modern-card rounded-3xl p-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="modern-action-tile" onclick="bukaGeminiKeyModal()">
+                                <div class="modern-icon-circle modern-icon-teal"><i class="fa-solid fa-key"></i></div>
+                                <span>Gemini API Key</span>
+                            </div>
+                            <div class="modern-action-tile" onclick="bukaLaporanBulanan()">
+                                <div class="modern-icon-circle modern-icon-purple"><i class="fa-solid fa-share-nodes"></i></div>
+                                <span>Jana Laporan</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="modern-group-header"><span>Zon Bahaya</span></div>
+                    <div class="modern-card modern-grad-rose rounded-3xl p-4 flex items-center gap-3 cursor-pointer" onclick="mohonResetSemuaData()">
+                        <div class="modern-icon-circle"><i class="fa-solid fa-trash-can"></i></div>
+                        <div class="flex-1">
+                            <h4 class="text-xs font-bold text-white">Padam Semua Data Apl</h4>
+                            <p class="text-[9px] text-white/80 mt-0.5">Tindakan ini kekal, tiada cara mengundur</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-2 flex items-center justify-between opacity-60">
+                    <span class="text-[9px] font-bold">Versi Engine</span>
+                    <span class="text-[9px] font-bold">UrusDuit v8.3 · STABLE</span>
+                </div>
+
             </div>
         </div>
 

@@ -2,6 +2,39 @@
 // UrusDuit — TETAPAN (Settings) — Backup/Restore, Report Templates
 // ============================================================
 
+let _tukarLayoutTerakhir = 0;
+function tukarLayoutMode(mod) {
+    const sekarang = Date.now();
+    if(sekarang - _tukarLayoutTerakhir < 250) return;
+    _tukarLayoutTerakhir = sekarang;
+
+    if(masterDatabase.layoutMode === mod) return;
+    masterDatabase.layoutMode = mod;
+    simpanKeLocalStorage();
+    terapkanTemaSemasa();
+    paparToast("Reka Bentuk Ditukar", mod === "modern" ? "UI Moden diaktifkan ✨" : "UI Klasik diaktifkan.", "sukses");
+}
+
+function paparLayoutModeAktif() {
+    const mod = masterDatabase.layoutMode || "classic";
+    const btnKlasik = document.getElementById('btn-layout-classic');
+    const btnModen = document.getElementById('btn-layout-modern');
+    if(!btnKlasik || !btnModen) return;
+
+    const aktifKelas = ['bg-indigo-600', 'text-white', 'shadow-sm'];
+    const tidakAktifKelas = ['text-slate-700', 'dark:text-slate-400'];
+
+    btnKlasik.classList.remove(...aktifKelas, ...tidakAktifKelas);
+    btnKlasik.classList.add(...(mod === 'classic' ? aktifKelas : tidakAktifKelas));
+
+    btnModen.classList.remove(...aktifKelas, ...tidakAktifKelas);
+    btnModen.classList.add(...(mod === 'modern' ? aktifKelas : tidakAktifKelas));
+}
+
+function menuKebabPlaceholder() {
+    paparToast("Menu Pantas", "Menu tindakan lanjut akan datang tidak lama lagi.", "info");
+}
+
 function bukaTemaModal() {
     if(!masterDatabase.themeStyle) masterDatabase.themeStyle = "default";
     paparPilihanTema();
