@@ -227,6 +227,7 @@ function terapkanTemaSemasa() {
     document.body.classList.add('theme-switching');
     document.body.className = kelasAsas + " theme-switching";
     document.documentElement.classList.toggle('dark', masterDatabase.isDarkMode);
+    kemaskiniHeaderModern();
 
     let wallpaperEl = document.getElementById('liquidglass-wallpaper');
     if(masterDatabase.themeStyle === "liquidglass") {
@@ -424,6 +425,37 @@ function tukarTab(tabName, element) {
     element.classList.remove('text-slate-400');
     element.classList.add('text-indigo-400', 'active-menu');
     kemaskiniPosisiNavPill(element, true);
+    kemaskiniHeaderModern(tabName);
+}
+
+const _JUDUL_MODERN_TAB = {
+    dashboard: { eyebrow: "UrusDuit", title: "Dashboard" },
+    gaji:      { eyebrow: "UrusDuit", title: "Gaji" },
+    komitmen:  { eyebrow: "UrusDuit", title: "Komitmen" },
+    agihan:    { eyebrow: "UrusDuit", title: "Agihan" },
+    hutang:    { eyebrow: "UrusDuit", title: "Hutang" },
+    tetapan:   { eyebrow: "UrusDuit", title: "Tetapan" }
+};
+
+function kemaskiniHeaderModern(tabNameParam) {
+    const eyebrowEl = document.getElementById('app-header-eyebrow');
+    const titleEl = document.getElementById('app-header-title');
+    if(!eyebrowEl || !titleEl) return;
+
+    if(masterDatabase.layoutMode !== "modern") {
+        eyebrowEl.textContent = "Sistem Poket Pintar";
+        titleEl.textContent = "UrusDuit Elite";
+        return;
+    }
+
+    let tabName = tabNameParam;
+    if(!tabName) {
+        const aktifTab = document.querySelector('.tab-content.active');
+        tabName = aktifTab ? aktifTab.id.replace('tab-', '') : 'dashboard';
+    }
+    const info = _JUDUL_MODERN_TAB[tabName] || _JUDUL_MODERN_TAB.dashboard;
+    eyebrowEl.textContent = info.eyebrow;
+    titleEl.textContent = info.title;
 }
 
 function kemaskiniPosisiNavPill(elTerpilih, animasiLantun) {

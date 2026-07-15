@@ -14,7 +14,7 @@
     <meta name="theme-color" content="#0f172a">
 
     <!-- CSS MODULE (Cache busted with ?v=8.9) -->
-    <link rel="stylesheet" href="css/styles.css?v=8.9">
+    <link rel="stylesheet" href="css/styles.css?v=9.0">
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -599,10 +599,10 @@
     <!-- MAIN APP TABS -->
     <div class="w-full max-w-md mx-auto px-4 pt-4 flex-1 flex flex-col">
         
-        <div class="flex justify-between items-center mb-4 liquid-glass p-3.5 rounded-2xl w-full">
+        <div id="app-header-bar" class="flex justify-between items-center mb-4 liquid-glass p-3.5 rounded-2xl w-full">
             <div>
-                <p class="text-[9px] opacity-70 tracking-wider uppercase font-semibold text-indigo-500 dark:text-indigo-400">Sistem Poket Pintar</p>
-                <h1 class="text-md font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">UrusDuit Elite</h1>
+                <p id="app-header-eyebrow" class="text-[9px] opacity-70 tracking-wider uppercase font-semibold text-indigo-500 dark:text-indigo-400">Sistem Poket Pintar</p>
+                <h1 id="app-header-title" class="text-md font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">UrusDuit Elite</h1>
             </div>
             <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center border border-slate-500/15 cursor-pointer hover:bg-slate-500/20">
                 <i id="theme-icon" class="fa-solid fa-moon text-indigo-500 dark:text-indigo-400 text-sm"></i>
