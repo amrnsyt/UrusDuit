@@ -140,7 +140,6 @@ document.addEventListener('click', () => {
 let masterDatabase = {
     isDarkMode: true,
     themeStyle: "default",
-    layoutMode: "classic",
     customKategori: [],
     customHutangKategori: [], 
     laporanTemplates: {},
@@ -224,11 +223,8 @@ function toggleDarkMode() {
 }
 function terapkanTemaSemasa() {
     if(!masterDatabase.themeStyle) masterDatabase.themeStyle = "default";
-    if(!masterDatabase.layoutMode) masterDatabase.layoutMode = "classic";
     let kelasAsas = masterDatabase.isDarkMode ? "dark-theme dark min-h-screen flex flex-col justify-between pb-32" : "light-theme min-h-screen flex flex-col justify-between pb-32";
     if(masterDatabase.themeStyle === "liquidglass") kelasAsas += " theme-liquidglass";
-    if(masterDatabase.layoutMode === "modern") kelasAsas += " layout-modern";
-    if(masterDatabase.layoutMode === "dynamic") kelasAsas += " layout-dynamic";
 
     document.body.classList.add('theme-switching');
     document.body.className = kelasAsas + " theme-switching";
@@ -256,10 +252,6 @@ function terapkanTemaSemasa() {
     if(typeof kemaskiniPosisiNavPill === 'function') {
         requestAnimationFrame(() => kemaskiniPosisiNavPill());
     }
-    if(typeof paparLayoutModeAktif === 'function') paparLayoutModeAktif();
-
-    const aktifTabEl = document.querySelector('.tab-content.active');
-    if(typeof window.__refreshDynamicApp === 'function') window.__refreshDynamicApp();
 }
 
 function bukaModal(tajuk, mesej, iconClass, wrapperClass, textIconClass, btnClass, iconBtnClass, btnText, action) {
@@ -444,34 +436,12 @@ function tukarTab(tabName, element) {
     kemaskiniHeaderModern(tabName);
 }
 
-const _JUDUL_MODERN_TAB = {
-    dashboard: { eyebrow: "UrusDuit", title: "Dashboard" },
-    gaji:      { eyebrow: "UrusDuit", title: "Gaji" },
-    komitmen:  { eyebrow: "UrusDuit", title: "Komitmen" },
-    agihan:    { eyebrow: "UrusDuit", title: "Agihan" },
-    hutang:    { eyebrow: "UrusDuit", title: "Hutang" },
-    tetapan:   { eyebrow: "UrusDuit", title: "Tetapan" }
-};
-
-function kemaskiniHeaderModern(tabNameParam) {
+function kemaskiniHeaderModern() {
     const eyebrowEl = document.getElementById('app-header-eyebrow');
     const titleEl = document.getElementById('app-header-title');
     if(!eyebrowEl || !titleEl) return;
-
-    if(masterDatabase.layoutMode !== "modern") {
-        eyebrowEl.textContent = "Sistem Poket Pintar";
-        titleEl.textContent = "UrusDuit Elite";
-        return;
-    }
-
-    let tabName = tabNameParam;
-    if(!tabName) {
-        const aktifTab = document.querySelector('.tab-content.active');
-        tabName = aktifTab ? aktifTab.id.replace('tab-', '') : 'dashboard';
-    }
-    const info = _JUDUL_MODERN_TAB[tabName] || _JUDUL_MODERN_TAB.dashboard;
-    eyebrowEl.textContent = info.eyebrow;
-    titleEl.textContent = info.title;
+    eyebrowEl.textContent = "Sistem Poket Pintar";
+    titleEl.textContent = "UrusDuit Elite";
 }
 
 function kemaskiniPosisiNavPill(elTerpilih, animasiLantun) {

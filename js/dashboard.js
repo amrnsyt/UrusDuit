@@ -635,7 +635,6 @@ function kemaskiniSemuaPaparan() {
     document.getElementById('display-baki-sebenar').innerText = `RM ${bakiSebenarSelepasSemua.toFixed(2)}`;
     document.getElementById('display-belum-dibayar').innerText = `RM ${(komitmenBelumBayar + hutangBelumBayar).toFixed(2)}`;
     document.getElementById('display-sudah-dibayar').innerText = `RM ${(komitmenSudahBayar + hutangSudahBayar).toFixed(2)}`;
-    if(typeof window.__refreshDynamicApp === 'function') window.__refreshDynamicApp();
     
     document.getElementById('display-gaji-bersih').innerText = `RM ${bakiGajiBersih.toFixed(2)}`;
     document.getElementById('display-gaji-kasar').innerText = `RM ${jumlahGajiKasar.toFixed(2)}`;
