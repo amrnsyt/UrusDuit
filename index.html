@@ -14,7 +14,7 @@
     <meta name="theme-color" content="#0f172a">
 
     <!-- CSS MODULE (Cache busted with ?v=8.9) -->
-    <link rel="stylesheet" href="css/styles.css?v=9.2">
+    <link rel="stylesheet" href="css/styles.css?v=9.3">
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -596,18 +596,8 @@
         </div>
     </div>
 
-    <!-- DINAMIK (BENTO) SIDEBAR -->
-    <div id="dinamik-sidebar" class="dinamik-sidebar">
-        <div class="dinamik-sidebar-logo"><i class="fa-solid fa-wallet"></i></div>
-        <button class="dinamik-nav-btn" data-tab="dashboard" onclick="tukarTab('dashboard')"><i class="fa-solid fa-chart-pie"></i><span>Utama</span></button>
-        <button class="dinamik-nav-btn" data-tab="gaji" onclick="tukarTab('gaji')"><i class="fa-solid fa-money-check-dollar"></i><span>Gaji</span></button>
-        <button class="dinamik-nav-btn" data-tab="komitmen" onclick="tukarTab('komitmen')"><i class="fa-solid fa-receipt"></i><span>Komitmen</span></button>
-        <button class="dinamik-nav-btn" data-tab="agihan" onclick="tukarTab('agihan')"><i class="fa-solid fa-camera"></i><span>Agihan</span></button>
-        <button class="dinamik-nav-btn" data-tab="hutang" onclick="tukarTab('hutang')"><i class="fa-solid fa-hand-holding-dollar"></i><span>Hutang</span></button>
-        <div class="dinamik-sidebar-spacer"></div>
-        <button class="dinamik-nav-btn" onclick="toggleDarkMode()"><i class="fa-solid fa-circle-half-stroke"></i><span>Mod</span></button>
-        <button class="dinamik-nav-btn" data-tab="tetapan" onclick="tukarTab('tetapan')"><i class="fa-solid fa-sliders"></i><span>Tetapan</span></button>
-    </div>
+    <!-- DYNAMIC (Konsta UI) ROOT — mounted once, shown only when layoutMode === "dynamic" -->
+    <div id="konsta-dynamic-root"></div>
 
     <!-- MAIN APP TABS -->
     <div id="app-main-wrapper" class="w-full max-w-md mx-auto px-4 pt-4 flex-1 flex flex-col">
@@ -833,8 +823,8 @@
                     <button id="btn-layout-modern" onclick="tukarLayoutMode('modern')" type="button" class="flex-1 text-[11px] px-3 py-2 rounded-lg font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-400">
                         <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Moden
                     </button>
-                    <button id="btn-layout-dinamik" onclick="tukarLayoutMode('dinamik')" type="button" class="flex-1 text-[11px] px-3 py-2 rounded-lg font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-400">
-                        <i class="fa-solid fa-border-all text-[10px]"></i> Dinamik
+                    <button id="btn-layout-dynamic" onclick="tukarLayoutMode('dynamic')" type="button" class="flex-1 text-[11px] px-3 py-2 rounded-lg font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-400">
+                        <i class="fa-solid fa-border-all text-[10px]"></i> Dynamic
                     </button>
                 </div>
             </div>
@@ -1021,5 +1011,19 @@
     <script src="js/komitmen.js"></script>
     <script src="js/agihan.js"></script>
     <script src="js/tetapan.js"></script>
+
+    <!-- DYNAMIC LAYOUT: Konsta UI (React) — no-build ESM, mounted only into #konsta-dynamic-root -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.3.1",
+            "react-dom": "https://esm.sh/react-dom@18.3.1",
+            "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+            "konsta/react": "https://esm.sh/konsta@5/react?external=react,react-dom"
+        }
+    }
+    </script>
+    <script src="https://esm.sh/tsx"></script>
+    <script type="text/babel" src="js/dynamic-app.jsx"></script>
 </body>
 </html>

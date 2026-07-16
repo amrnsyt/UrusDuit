@@ -154,6 +154,11 @@ let modalConfirmAction = null;
 let idHutangSedangDiedit = null;
 let idKomitmenSedangDiedit = null;
 
+// Live accessors used by the Konsta (React) "Dynamic" layout to read/write
+// the same in-memory state as the classic/modern UI without needing window.* exports.
+function getMasterDatabase() { return masterDatabase; }
+function getBulanAktif() { return bulanAktif; }
+
 window.onload = function() {
     janaSenaraiBulan();
     
@@ -223,7 +228,7 @@ function terapkanTemaSemasa() {
     let kelasAsas = masterDatabase.isDarkMode ? "dark-theme dark min-h-screen flex flex-col justify-between pb-32" : "light-theme min-h-screen flex flex-col justify-between pb-32";
     if(masterDatabase.themeStyle === "liquidglass") kelasAsas += " theme-liquidglass";
     if(masterDatabase.layoutMode === "modern") kelasAsas += " layout-modern";
-    if(masterDatabase.layoutMode === "dinamik") kelasAsas += " layout-dinamik";
+    if(masterDatabase.layoutMode === "dynamic") kelasAsas += " layout-dynamic";
 
     document.body.classList.add('theme-switching');
     document.body.className = kelasAsas + " theme-switching";
@@ -254,18 +259,7 @@ function terapkanTemaSemasa() {
     if(typeof paparLayoutModeAktif === 'function') paparLayoutModeAktif();
 
     const aktifTabEl = document.querySelector('.tab-content.active');
-    const namaTabAktif = aktifTabEl ? aktifTabEl.id.replace('tab-', '') : 'dashboard';
-    document.querySelectorAll('.dinamik-nav-btn[data-tab]').forEach(btn => {
-        btn.classList.toggle('dinamik-active', btn.dataset.tab === namaTabAktif);
-    });
-    if(typeof terapkanBentoDashboard === 'function') {
-        terapkanBentoDashboard(masterDatabase.layoutMode === "dinamik");
-    }
-    if(masterDatabase.layoutMode === "dinamik" && aktifTabEl) {
-        aktifTabEl.classList.remove('bento-mount');
-        void aktifTabEl.offsetWidth;
-        aktifTabEl.classList.add('bento-mount');
-    }
+    if(typeof window.__refreshDynamicApp === 'function') window.__refreshDynamicApp();
 }
 
 function bukaModal(tajuk, mesej, iconClass, wrapperClass, textIconClass, btnClass, iconBtnClass, btnText, action) {
@@ -437,12 +431,6 @@ function tukarTab(tabName, element) {
     const tabEl = document.getElementById('tab-' + tabName);
     tabEl.classList.add('active');
 
-    if(masterDatabase.layoutMode === "dinamik") {
-        tabEl.classList.remove('bento-mount');
-        void tabEl.offsetWidth;
-        tabEl.classList.add('bento-mount');
-    }
-
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('text-indigo-400', 'active-menu');
         btn.classList.add('text-slate-400');
@@ -452,12 +440,6 @@ function tukarTab(tabName, element) {
         element.classList.add('text-indigo-400', 'active-menu');
         kemaskiniPosisiNavPill(element, true);
     }
-
-    document.querySelectorAll('.dinamik-nav-btn[data-tab]').forEach(btn => {
-        btn.classList.toggle('dinamik-active', btn.dataset.tab === tabName);
-    });
-
-    if(tabName === 'dashboard' && typeof kemaskiniBentoDonut === 'function') kemaskiniBentoDonut();
 
     kemaskiniHeaderModern(tabName);
 }

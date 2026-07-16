@@ -12,7 +12,7 @@ function tukarLayoutMode(mod) {
     masterDatabase.layoutMode = mod;
     simpanKeLocalStorage();
     terapkanTemaSemasa();
-    const mesejMod = mod === "modern" ? "UI Moden diaktifkan ✨" : (mod === "dinamik" ? "UI Dinamik (Bento) diaktifkan 🟪" : "UI Klasik diaktifkan.");
+    const mesejMod = mod === "modern" ? "UI Moden diaktifkan ✨" : (mod === "dynamic" ? "UI Dynamic (Konsta) diaktifkan 🟪" : "UI Klasik diaktifkan.");
     paparToast("Reka Bentuk Ditukar", mesejMod, "sukses");
 }
 
@@ -20,7 +20,7 @@ function paparLayoutModeAktif() {
     const mod = masterDatabase.layoutMode || "classic";
     const btnKlasik = document.getElementById('btn-layout-classic');
     const btnModen = document.getElementById('btn-layout-modern');
-    const btnDinamik = document.getElementById('btn-layout-dinamik');
+    const btnDinamik = document.getElementById('btn-layout-dynamic');
     if(!btnKlasik || !btnModen || !btnDinamik) return;
 
     const aktifKelas = ['bg-indigo-600', 'text-white', 'shadow-sm'];
@@ -33,7 +33,7 @@ function paparLayoutModeAktif() {
     btnModen.classList.add(...(mod === 'modern' ? aktifKelas : tidakAktifKelas));
 
     btnDinamik.classList.remove(...aktifKelas, ...tidakAktifKelas);
-    btnDinamik.classList.add(...(mod === 'dinamik' ? aktifKelas : tidakAktifKelas));
+    btnDinamik.classList.add(...(mod === 'dynamic' ? aktifKelas : tidakAktifKelas));
 }
 
 function menuKebabPlaceholder() {
@@ -201,90 +201,6 @@ function padamTemplateLaporan() {
         paparToast("Berjaya", "Template telah dipadam.", "sukses");
     }
 }
-
-function terapkanBentoDashboard(aktif) {
-    const heroCard = document.getElementById('kad-baki-utama');
-    if(!heroCard) return;
-
-    if(aktif) {
-        if(heroCard.dataset.bentoSplit === '1') { kemaskiniBentoDonut(); return; }
-        const statGrid = heroCard.querySelector('.grid.grid-cols-2.gap-2\\.5');
-        const miniGrid = heroCard.querySelector('.grid.grid-cols-3');
-        if(!statGrid || !miniGrid) return;
-
-        const statCard = document.createElement('div');
-        statCard.id = 'bento-stat-card';
-        statCard.className = 'liquid-glass rounded-2xl p-4 flex items-center bento-span-half';
-        statCard.appendChild(statGrid);
-
-        const miniCard = document.createElement('div');
-        miniCard.id = 'bento-mini-card';
-        miniCard.className = 'liquid-glass rounded-2xl p-4 bento-span-half';
-
-        const donutWrap = document.createElement('div');
-        donutWrap.id = 'bento-donut-wrap';
-        donutWrap.innerHTML = '<div class="dinamik-donut" id="bento-donut"></div><span id="bento-donut-label">0%</span>';
-        miniCard.appendChild(donutWrap);
-        miniCard.appendChild(miniGrid);
-
-        heroCard.classList.add('bento-span-full');
-        heroCard.after(statCard);
-        statCard.after(miniCard);
-        heroCard.dataset.bentoSplit = '1';
-
-        const checklistCard = document.getElementById('kad-checklist-komitmen');
-        if(checklistCard) checklistCard.classList.add('bento-span-full');
-        const quickActions = document.getElementById('kad-quick-actions');
-        if(quickActions) quickActions.classList.add('bento-span-full');
-
-        kemaskiniBentoDonut();
-    } else {
-        if(heroCard.dataset.bentoSplit !== '1') return;
-        const statCard = document.getElementById('bento-stat-card');
-        const miniCard = document.getElementById('bento-mini-card');
-        const statGrid = statCard ? statCard.querySelector('.grid.grid-cols-2') : null;
-        const miniGrid = miniCard ? miniCard.querySelector('.grid.grid-cols-3') : null;
-        if(statGrid) heroCard.appendChild(statGrid);
-        if(miniGrid) heroCard.appendChild(miniGrid);
-        if(statCard) statCard.remove();
-        if(miniCard) miniCard.remove();
-        heroCard.classList.remove('bento-span-full');
-        heroCard.removeAttribute('data-bento-split');
-
-        const checklistCard = document.getElementById('kad-checklist-komitmen');
-        if(checklistCard) checklistCard.classList.remove('bento-span-full');
-        const quickActions = document.getElementById('kad-quick-actions');
-        if(quickActions) quickActions.classList.remove('bento-span-full');
-    }
-}
-
-function kemaskiniBentoDonut() {
-    const donut = document.getElementById('bento-donut');
-    const label = document.getElementById('bento-donut-label');
-    if(!donut || !label) return;
-    const parseRM = (id) => {
-        const el = document.getElementById(id);
-        if(!el) return 0;
-        return parseFloat(el.innerText.replace('RM', '').replace(/,/g, '').trim()) || 0;
-    };
-    const belum = parseRM('display-belum-dibayar');
-    const sudah = parseRM('display-sudah-dibayar');
-    const jumlah = belum + sudah;
-    const peratus = jumlah > 0 ? Math.round((sudah / jumlah) * 100) : 0;
-    donut.style.setProperty('--val', peratus + '%');
-    label.textContent = peratus + '%';
-}
-
-function terapkanBentoDinamikPenuh() {
-    const aktif = masterDatabase.layoutMode === 'dinamik';
-    terapkanBentoDashboard(aktif);
-}
-
-function bangunkanSidebarDinamik() {
-    // no-op placeholder kept for backwards compatibility with older calls
-}
-
-
 
 function tentukanBulanLaporan() {
     const now = new Date();
